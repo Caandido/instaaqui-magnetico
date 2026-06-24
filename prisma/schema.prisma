@@ -59,7 +59,7 @@ model Organization {
 
   memberships  Membership[]
   subscription Subscription?
-  // Project[] entra na Fase 1
+  projects     Project[]
 }
 
 model Membership {
@@ -88,6 +88,111 @@ model Subscription {
 
   organizationId       String             @unique
   organization         Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+// ----------------------------------------------------------------------------
+// Fase 1 — Coleta: projetos de análise, concorrentes, conteúdos e jobs.
+// ----------------------------------------------------------------------------
+
+enum ContentType {
+  REELS
+  CAROUSEL
+  IMAGE
+  VIDEO
+  STORY
+  UNKNOWN
+}
+
+enum JobStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+model Project {
+  id             String       @id @default(cuid())
+  name           String
+  niche          String? // nicho
+  handle         String? // perfil próprio (@)
+  objective      String? // objetivo
+  language       String       @default("pt-BR")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  competitors    Competitor[]
+  jobs           CollectionJob[]
+
+  @@index([organizationId])
+}
+
+model Competitor {
+  id             String    @id @default(cuid())
+  handle         String // @ do concorrente (sem o @)
+  displayName    String?
+  bio            String?
+  cta            String?
+  link           String?
+  positioning    String? // posicionamento
+  promise        String? // promessa principal
+  followers      Int?
+  following      Int?
+  postsCount     Int?
+  profilePicUrl  String?
+  lastCollectedAt DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  projectId      String
+  project        Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  contents       Content[]
+
+  @@unique([projectId, handle])
+  @@index([projectId])
+}
+
+model Content {
+  id            String      @id @default(cuid())
+  externalId    String // id/shortcode do post no Instagram
+  type          ContentType @default(UNKNOWN)
+  caption       String?
+  url           String?
+  mediaUrl      String?
+  thumbnailUrl  String?
+  likes         Int?
+  comments      Int?
+  views         Int?
+  postedAt      DateTime?
+  createdAt     DateTime    @default(now())
+
+  competitorId  String
+  competitor    Competitor  @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+
+  @@unique([competitorId, externalId])
+  @@index([competitorId])
+}
+
+model CollectionJob {
+  id             String    @id @default(cuid())
+  status         JobStatus @default(PENDING)
+  apifyRunId     String?
+  webhookToken   String? // segredo para validar o webhook da Apify
+  itemsCollected Int       @default(0)
+  error          String?
+  startedAt      DateTime  @default(now())
+  finishedAt     DateTime?
+
+  projectId      String
+  project        Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  competitorId   String?
+
+  @@index([projectId])
+  @@index([apifyRunId])
 }
 
 // ----------------------------------------------------------------------------

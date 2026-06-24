@@ -18,9 +18,19 @@ export default async function AppLayout({
     <div className="min-h-screen bg-gray-50 text-gray-900">
       <header className="border-b border-gray-200 bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
-          <Link href="/dashboard" className="font-semibold tracking-tight">
-            InstaAqui <span className="text-pink-600">Magnético</span>
-          </Link>
+          <div className="flex items-center gap-6">
+            <Link href="/dashboard" className="font-semibold tracking-tight">
+              InstaAqui <span className="text-pink-600">Magnético</span>
+            </Link>
+            <nav className="flex items-center gap-4 text-sm text-gray-600">
+              <Link href="/dashboard" className="hover:text-gray-900">
+                Dashboard
+              </Link>
+              <Link href="/projetos" className="hover:text-gray-900">
+                Projetos
+              </Link>
+            </nav>
+          </div>
 
           <div className="flex items-center gap-4">
             {activeOrg && (

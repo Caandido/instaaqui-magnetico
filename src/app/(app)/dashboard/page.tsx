@@ -22,17 +22,20 @@ export default async function DashboardPage() {
           <p className="mt-1 text-lg font-semibold">{activeOrg?.name ?? "—"}</p>
           <p className="text-xs text-gray-400">Seu papel: {activeOrg?.role ?? "—"}</p>
         </div>
-        <div className="rounded-lg border border-gray-200 bg-white p-5">
-          <h2 className="text-sm font-medium text-gray-500">Próximo passo</h2>
+        <a
+          href="/projetos"
+          className="rounded-lg border border-gray-200 bg-white p-5 transition hover:border-pink-300"
+        >
+          <h2 className="text-sm font-medium text-gray-500">Coleta (Fase 1)</h2>
           <p className="mt-1 text-gray-700">
-            Fase 1 — Coleta via Apify (criar projetos e concorrentes).
+            Criar projetos, adicionar concorrentes e coletar conteúdos →
           </p>
-        </div>
+        </a>
       </div>
 
       <div className="rounded-lg border border-dashed border-gray-300 bg-white p-5 text-sm text-gray-500">
-        As telas de projetos, concorrentes, tendências, ideias, roteiros, gaps,
-        alertas e relatórios chegam nas próximas fases.
+        As telas de tendências, ideias, roteiros, gaps, alertas e relatórios
+        chegam nas próximas fases.
       </div>
     </div>
   );
