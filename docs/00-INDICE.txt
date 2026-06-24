@@ -22,7 +22,7 @@ feature futura do projeto. Tudo escrito em português, para qualquer pessoa ente
 ------------------------------------------------------------------------------------------
  STATUS DAS FASES
 ------------------------------------------------------------------------------------------
-  [X] FASE 0 — Fundação  (código pronto; falta só conectar o Postgres e rodar a migração)
+  [X] FASE 0 — Fundação  (CONCLUÍDA e no ar: https://instaaqui-magnetico.vercel.app)
   [ ] FASE 1 — Coleta (Apify)
   [ ] FASE 2 — Motor de IA
   [ ] FASE 3 — Recursos de SaaS
