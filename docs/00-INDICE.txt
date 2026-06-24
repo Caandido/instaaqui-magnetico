@@ -1,0 +1,63 @@
+==========================================================================================
+ ÍNDICE DA DOCUMENTAÇÃO — InstaAqui Magnético
+==========================================================================================
+
+Esta pasta (docs/) guarda um arquivo .txt explicativo, passo a passo, para CADA fase e CADA
+feature futura do projeto. Tudo escrito em português, para qualquer pessoa entender.
+
+------------------------------------------------------------------------------------------
+ COMECE POR AQUI
+------------------------------------------------------------------------------------------
+  ../ESTRUTURA-DO-PROJETO.txt   -> Visão geral de TODO o projeto (leia primeiro).
+
+------------------------------------------------------------------------------------------
+ DOCUMENTAÇÃO POR FASE (na ordem de construção)
+------------------------------------------------------------------------------------------
+  FASE-0-FUNDACAO.txt                 -> Base: Next.js, banco, login, multi-tenant.
+  FASE-1-COLETA-APIFY.txt             -> Coleta dos concorrentes via Apify.
+  FASE-2-MOTOR-DE-IA.txt              -> Os 7 agentes de IA (análise e geração).
+  FASE-3-SAAS-BILLING-AGENDAMENTO.txt -> Cobrança (Stripe), agendamento e alertas.
+  FASE-4-FRONTEND-DASHBOARDS.txt      -> Todas as telas do produto.
+
+------------------------------------------------------------------------------------------
+ STATUS DAS FASES
+------------------------------------------------------------------------------------------
+  [X] FASE 0 — Fundação  (código pronto; falta só conectar o Postgres e rodar a migração)
+  [ ] FASE 1 — Coleta (Apify)
+  [ ] FASE 2 — Motor de IA
+  [ ] FASE 3 — Recursos de SaaS
+  [ ] FASE 4 — Frontend / Dashboards
+  (Marque com X conforme cada fase for concluída.)
+
+------------------------------------------------------------------------------------------
+ REGRA: TODA FEATURE FUTURA GANHA UM .TXT AQUI
+------------------------------------------------------------------------------------------
+  Sempre que uma nova fase ou feature for planejada/criada, deve ser adicionado um arquivo
+  nesta pasta seguindo o MESMO modelo dos demais, com estas seções:
+
+     1. Objetivo da fase/feature (em 1 parágrafo)
+     2. O que esta etapa entrega (checklist)
+     3. Pré-requisitos
+     4. Passo a passo (com comandos)
+     5. Como testar
+     6. Arquivos criados/alterados
+     7. Glossário dos termos novos
+
+  Sugestão de nome para features futuras:
+     FEATURE-<nome-curto>.txt   (ex.: FEATURE-EXPORTAR-PDF.txt, FEATURE-EQUIPE.txt)
+
+------------------------------------------------------------------------------------------
+ IDEIAS DE FEATURES FUTURAS (para criar .txt quando forem priorizadas)
+------------------------------------------------------------------------------------------
+  - Exportar relatórios em PDF
+  - Notificações de alertas por e-mail / WhatsApp
+  - Comparação lado a lado entre concorrentes
+  - Histórico/evolução de métricas em gráficos
+  - Calendário de conteúdo (a partir do plano de 7 dias)
+  - Convidar membros para a organização (papéis e permissões)
+  - Integração para publicar/agendar posts
+  - Outras fontes de dados além do Instagram (TikTok, YouTube)
+
+==========================================================================================
+ FIM DO ÍNDICE
+==========================================================================================

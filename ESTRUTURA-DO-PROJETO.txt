@@ -1,0 +1,451 @@
+==========================================================================================
+ INSTAAQUI MAGNÉTICO — ESTRUTURA DO PROJETO (PASSO A PASSO)
+ SaaS de Inteligência Competitiva para Instagram
+==========================================================================================
+
+Este documento explica, do zero, TODA a estrutura do projeto: o que é, como os dados
+fluem, quais pastas/arquivos existem e para que servem, o passo a passo de instalação e
+como rodar o sistema de ponta a ponta. Leia na ordem.
+
+Idioma do produto: pt-BR.
+
+------------------------------------------------------------------------------------------
+ SUMÁRIO
+------------------------------------------------------------------------------------------
+ 1. VISÃO GERAL DO PRODUTO
+ 2. COMO OS DADOS FLUEM (DO CONCORRENTE ATÉ O RELATÓRIO)
+ 3. TECNOLOGIAS USADAS (E POR QUÊ)
+ 4. PRÉ-REQUISITOS (CONTAS, CHAVES E PROGRAMAS)
+ 5. ÁRVORE DE PASTAS E ARQUIVOS (COM EXPLICAÇÃO DE CADA UM)
+ 6. MODELO DE DADOS (O QUE É GUARDADO NO BANCO)
+ 7. OS 7 AGENTES DE IA (O CÉREBRO DO SISTEMA)
+ 8. PASSO A PASSO DE INSTALAÇÃO E CONFIGURAÇÃO
+ 9. VARIÁVEIS DE AMBIENTE (.env) EXPLICADAS
+10. COMO RODAR E USAR (FLUXO COMPLETO)
+11. FASES DE CONSTRUÇÃO (ROADMAP)
+12. CUSTOS E LIMITES (APIFY + ANTHROPIC)
+13. GLOSSÁRIO RÁPIDO
+
+==========================================================================================
+ 1. VISÃO GERAL DO PRODUTO
+==========================================================================================
+
+O InstaAqui Magnético é um SaaS (software por assinatura, acessado pelo navegador) que
+monitora perfis CONCORRENTES no Instagram e transforma o que eles publicam em VANTAGEM
+para você.
+
+O objetivo NÃO é copiar. É descobrir:
+  - O que está funcionando (e o que já saturou)
+  - Quais ganchos prendem atenção
+  - Quais narrativas convertem
+  - Quais tendências estão começando a crescer
+  - Quais "gaps" (assuntos pouco explorados) são oportunidade
+
+A partir disso, o sistema GERA automaticamente:
+  - Resumo estratégico
+  - Tendências detectadas
+  - Top conteúdos
+  - Ganchos vencedores
+  - 20+ ideias de conteúdo
+  - Roteiros prontos
+  - Gaps de mercado
+  - Alertas (ex.: concorrente viralizou, mudou de oferta, mudou a bio)
+  - Plano de conteúdo para os próximos 7 dias
+
+Você informa: seu nicho, seu perfil, a lista de concorrentes e seu objetivo. O sistema faz
+o resto.
+
+==========================================================================================
+ 2. COMO OS DADOS FLUEM (DO CONCORRENTE ATÉ O RELATÓRIO)
+==========================================================================================
+
+Pense em uma esteira com 4 grandes etapas:
+
+  [1] COLETA            [2] CLASSIFICAÇÃO        [3] ANÁLISE + GERAÇÃO     [4] ENTREGA
+  ------------         -----------------        ---------------------     ----------
+  Apify visita os  -->  Cada post recebe    -->  A IA (Claude) lê tudo, -->  Você vê na tela
+  perfis públicos       rótulos: categoria,      identifica padrões de       dashboards e
+  e devolve os          formato e objetivo.      viralização, gera ideias,   relatórios; e
+  posts/métricas.       Vai para o banco.        roteiros, gaps e alertas.   recebe alertas.
+
+Detalhe de cada etapa:
+
+  [1] COLETA (Apify)
+      - O sistema chama a Apify (serviço em nuvem) passando os @ dos concorrentes.
+      - A Apify roda um "Actor" (robô pronto) que lê o perfil público e os posts.
+      - Devolve um JSON com: bio, link, seguidores, posts, curtidas, comentários,
+        visualizações, legendas, datas, etc.
+      - Vantagem: roda na nuvem DELES, então NÃO arrisca banir sua conta do Instagram.
+
+  [2] CLASSIFICAÇÃO
+      - Cada post é etiquetado:
+          Categoria: Educacional / Autoridade / Bastidores / Prova Social / Oferta /
+                     Tendência / Polêmico / Entretenimento
+          Formato:   Reels / Carrossel / Story / Meme / Corte / UGC
+          Objetivo:  Alcance / Engajamento / Conversão / Branding
+      - Tudo é salvo no banco de dados para histórico e comparação ao longo do tempo.
+
+  [3] ANÁLISE + GERAÇÃO (os 7 agentes de IA — ver seção 7)
+      - A IA faz "engenharia reversa" dos melhores posts: Gancho -> Desenvolvimento ->
+        CTA -> Por que funcionou.
+      - Detecta tendências comparando janelas de tempo (esta semana x semanas anteriores).
+      - Gera 20+ ideias, roteiros, gaps e alertas.
+
+  [4] ENTREGA
+      - Dashboards no navegador + relatórios diário/semanal + alertas em tempo real.
+
+==========================================================================================
+ 3. TECNOLOGIAS USADAS (E POR QUÊ)
+==========================================================================================
+
+  Next.js (App Router) + TypeScript
+      Framework que junta FRONTEND (telas) e BACKEND (lógica/servidor) num único projeto.
+      Tudo em uma linguagem só (TypeScript = JavaScript com tipos). Fácil de hospedar.
+
+  Tailwind CSS + shadcn/ui
+      Para construir as telas bonitas e rápidas, com componentes prontos (botões, tabelas,
+      cards, modais).
+
+  PostgreSQL (banco de dados) + Prisma (ORM)
+      PostgreSQL guarda TUDO (usuários, concorrentes, posts, ideias, relatórios).
+      Prisma é a "ponte" que deixa o código conversar com o banco de forma simples e segura.
+
+  Auth.js (NextAuth)
+      Cuida de login/cadastro e de separar os dados de cada cliente (multi-tenant).
+
+  Apify (apify-client)
+      Serviço de coleta de dados do Instagram, usado no plano gratuito.
+
+  Anthropic SDK (Claude)
+      A Inteligência Artificial que analisa e gera os conteúdos.
+
+  Stripe
+      Cobrança de assinatura (planos pagos).
+
+  Inngest (ou BullMQ + Redis)
+      Agendador de tarefas: roda coletas e relatórios automaticamente (ex.: todo dia 8h).
+
+==========================================================================================
+ 4. PRÉ-REQUISITOS (CONTAS, CHAVES E PROGRAMAS)
+==========================================================================================
+
+Antes de rodar, você precisa ter:
+
+  PROGRAMAS:
+    [ ] Node.js 20+ instalado          -> https://nodejs.org  (baixe a versão LTS)
+    [ ] Git instalado                  -> https://git-scm.com
+    [ ] Um editor de código            -> VS Code (recomendado)
+
+  CONTAS E CHAVES (todas têm plano grátis para começar):
+    [ ] Apify          -> https://apify.com        -> pegar o "API token" (APIFY_TOKEN)
+    [ ] Anthropic      -> https://console.anthropic.com -> pegar a "API key" (Claude)
+    [ ] Banco Postgres -> Neon (https://neon.tech) OU Supabase (https://supabase.com)
+                          -> pegar a "Connection String" (DATABASE_URL)
+    [ ] Stripe         -> https://stripe.com        -> pegar as chaves de TESTE
+                          (só necessário quando for ativar cobrança — pode deixar p/ depois)
+
+  OBS: Anote cada chave; elas vão no arquivo ".env" (ver seção 9). NUNCA compartilhe essas
+  chaves nem as suba para o GitHub.
+
+==========================================================================================
+ 5. ÁRVORE DE PASTAS E ARQUIVOS (COM EXPLICAÇÃO DE CADA UM)
+==========================================================================================
+
+Esta é a estrutura ALVO do projeto (será criada durante a construção). Cada linha explica
+para que serve.
+
+instaaqui-magnetico/
+│
+├── CLAUDE.md                  -> A especificação original (regras de negócio do produto).
+├── ESTRUTURA-DO-PROJETO.txt   -> Este arquivo que você está lendo.
+├── README.md                  -> Instruções rápidas de instalação/execução.
+├── package.json               -> Lista de dependências e comandos (scripts) do projeto.
+├── .env.example               -> Modelo das variáveis de ambiente (copiar para .env).
+├── .env                       -> Suas chaves reais (NÃO vai para o Git).
+├── .gitignore                 -> Diz ao Git o que ignorar (.env, node_modules, etc.).
+├── next.config.ts             -> Configurações do Next.js.
+├── tailwind.config.ts         -> Configurações de estilo (Tailwind).
+├── tsconfig.json              -> Configurações do TypeScript.
+│
+├── prisma/
+│   ├── schema.prisma          -> DEFINE o banco de dados (todas as tabelas/entidades).
+│   ├── migrations/            -> Histórico de mudanças no banco (gerado automaticamente).
+│   └── seed.ts                -> Dados de exemplo para testar (opcional).
+│
+├── public/                    -> Imagens, ícones e arquivos estáticos do site.
+│
+└── src/
+    │
+    ├── app/                   -> TODAS as páginas e rotas (Next.js App Router).
+    │   ├── layout.tsx         -> Esqueleto comum a todas as páginas (cabeçalho, etc.).
+    │   ├── page.tsx           -> Página inicial (landing/entrada).
+    │   │
+    │   ├── (auth)/            -> Telas de login e cadastro.
+    │   │   ├── login/page.tsx
+    │   │   └── signup/page.tsx
+    │   │
+    │   ├── (app)/             -> Área logada (o produto em si).
+    │   │   ├── dashboard/page.tsx        -> Visão geral / resumo executivo.
+    │   │   ├── projetos/                 -> Criar e gerenciar projetos de análise.
+    │   │   │   ├── page.tsx              -> Lista de projetos.
+    │   │   │   └── [id]/                 -> Um projeto específico:
+    │   │   │       ├── page.tsx          ->   resumo do projeto
+    │   │   │       ├── concorrentes/     ->   lista de concorrentes monitorados
+    │   │   │       ├── conteudos/        ->   top conteúdos coletados
+    │   │   │       ├── tendencias/       ->   radar de tendências
+    │   │   │       ├── ideias/           ->   ideias geradas
+    │   │   │       ├── roteiros/         ->   roteiros gerados
+    │   │   │       ├── gaps/             ->   gaps/oportunidades
+    │   │   │       ├── alertas/          ->   alertas estratégicos
+    │   │   │       └── relatorios/       ->   relatórios diário/semanal + plano 7 dias
+    │   │   └── configuracoes/page.tsx    -> Plano, billing, membros da equipe.
+    │   │
+    │   └── api/               -> ENDPOINTS de backend (o servidor responde aqui).
+    │       ├── auth/[...nextauth]/route.ts  -> Login (gerenciado pelo Auth.js).
+    │       ├── projetos/route.ts            -> Criar/listar projetos.
+    │       ├── coleta/route.ts              -> Disparar uma coleta no Apify.
+    │       ├── analise/route.ts             -> Rodar o pipeline de IA.
+    │       ├── stripe/webhook/route.ts      -> Recebe eventos de pagamento do Stripe.
+    │       └── cron/route.ts                -> Tarefas agendadas (coleta/relatórios).
+    │
+    ├── components/            -> Peças reutilizáveis de tela (botões, tabelas, cards...).
+    │   ├── ui/                -> Componentes base do shadcn/ui.
+    │   └── ...                -> Componentes próprios (CardConcorrente, TabelaConteudo...).
+    │
+    ├── lib/                   -> O "miolo" da lógica (não é tela; é regra de negócio).
+    │   │
+    │   ├── db.ts              -> Conexão única com o banco (Prisma Client).
+    │   ├── auth.ts            -> Configuração do login/sessão (Auth.js).
+    │   ├── stripe.ts          -> Funções de cobrança (assinatura, limites por plano).
+    │   │
+    │   ├── collectors/        -> CAMADA DE COLETA (plugável).
+    │   │   ├── types.ts       -> "Contrato" CollectorAdapter (entrada/saída padrão).
+    │   │   ├── apify.ts       -> Implementação que usa a Apify (a oficial do projeto).
+    │   │   └── normalize.ts   -> Converte o JSON do Apify para o formato do nosso banco.
+    │   │
+    │   └── ai/                -> MOTOR DE IA (os 7 agentes).
+    │       ├── anthropic.ts   -> Cliente Claude + prompt caching (economiza custo).
+    │       ├── schemas.ts     -> Formatos de saída validados (Zod): Ideia, Roteiro, etc.
+    │       ├── classificador.ts      -> Agente 2: rotula os conteúdos.
+    │       ├── viralizacao.ts        -> Agente 3: padrões de ganchos/narrativas/CTA.
+    │       ├── estrategista.ts       -> Agente 4: gera oportunidades e gaps.
+    │       ├── copywriter.ts         -> Agente 5: gera ideias e roteiros.
+    │       ├── trend-hunter.ts       -> Agente 6: detecta tendências emergentes.
+    │       ├── report-generator.ts   -> Agente 7: monta relatórios e plano de 7 dias.
+    │       └── pipeline.ts           -> Orquestra: chama os agentes na ordem certa.
+    │
+    ├── inngest/               -> Tarefas agendadas (ex.: coletar todo dia, gerar relatório).
+    │   ├── client.ts
+    │   └── functions.ts
+    │
+    └── types/                -> Tipos TypeScript compartilhados em todo o projeto.
+
+REGRA DE OURO: "tela" fica em src/app e src/components; "cérebro/regra" fica em src/lib.
+
+==========================================================================================
+ 6. MODELO DE DADOS (O QUE É GUARDADO NO BANCO)
+==========================================================================================
+
+Definido em prisma/schema.prisma. Principais "tabelas" (entidades):
+
+  User            -> Pessoa que usa o sistema (e-mail, senha/login).
+  Organization    -> Empresa/workspace. Cada cliente tem a sua (separa os dados).
+  Membership      -> Liga User <-> Organization (quem participa de qual workspace).
+  Subscription    -> Plano/assinatura do cliente (vindo do Stripe).
+  Project         -> Uma análise: { nicho, perfil próprio, objetivo, idioma }.
+  Competitor      -> Concorrente monitorado: bio, CTA, link, posicionamento, promessa.
+  Content         -> Um post coletado: tipo, legenda, mídia, métricas, data.
+  Classification  -> Rótulos de um Content: categoria, formato, objetivo.
+  Insight         -> Padrões extraídos: ganchos, narrativas, CTAs, engenharia reversa.
+  Idea            -> Ideia de conteúdo gerada (título, gancho, estrutura, CTA, potencial).
+  Script          -> Roteiro gerado (objetivo, gancho, cenas, CTA, legenda).
+  Gap             -> Oportunidade encontrada (tema, motivo, potencial, recomendação).
+  Trend           -> Tendência detectada (assunto/formato/gancho crescente).
+  Alert           -> Alerta estratégico (tipo, concorrente, descrição, impacto, ação).
+  Report          -> Relatório diário/semanal (conteúdo estruturado).
+  CollectionJob   -> Registro de uma coleta (status: pendente/rodando/concluída/erro).
+
+Relações em resumo:
+  Organization 1---N Project 1---N Competitor 1---N Content 1---1 Classification
+  Project 1---N (Idea, Script, Gap, Trend, Alert, Report)
+
+==========================================================================================
+ 7. OS 7 AGENTES DE IA (O CÉREBRO DO SISTEMA)
+==========================================================================================
+
+Ficam em src/lib/ai/. Cada agente é uma função que RECEBE dados e DEVOLVE um resultado
+em formato fixo (validado com Zod, para nunca vir "torto").
+
+  AGENTE 1 — COLETOR        (não usa IA)
+     Aciona a Apify, recebe os posts e normaliza para o banco. (Fica em src/lib/collectors.)
+
+  AGENTE 2 — CLASSIFICADOR
+     Lê cada post e define categoria, formato e objetivo.
+
+  AGENTE 3 — ANALISTA DE VIRALIZAÇÃO
+     Acha os padrões dos posts que mais performaram. Faz engenharia reversa:
+     Gancho -> Desenvolvimento -> CTA -> Motivo do sucesso.
+
+  AGENTE 4 — ESTRATEGISTA
+     Transforma os padrões em OPORTUNIDADES e encontra GAPS (temas pouco explorados).
+
+  AGENTE 5 — COPYWRITER
+     Gera no MÍNIMO 20 ideias e os roteiros, seguindo os formatos do CLAUDE.md.
+
+  AGENTE 6 — TREND HUNTER
+     Compara períodos para achar tendências EMERGENTES (assuntos/ganchos/formatos subindo).
+
+  AGENTE 7 — REPORT GENERATOR
+     Junta tudo nos 9 entregáveis + relatório diário/semanal + plano de 7 dias.
+
+  pipeline.ts -> chama os agentes na sequência:
+     coletar -> classificar -> analisar viralização -> estrategista ->
+     copywriter -> trend hunter -> gerar relatório.
+
+ECONOMIA: anthropic.ts usa "prompt caching" — as instruções fixas de cada agente são
+cacheadas, reduzindo bastante o custo por análise.
+
+==========================================================================================
+ 8. PASSO A PASSO DE INSTALAÇÃO E CONFIGURAÇÃO
+==========================================================================================
+
+Faça na ordem. (Comandos no terminal, dentro da pasta do projeto.)
+
+  PASSO 1 — Instalar dependências
+     > npm install
+
+  PASSO 2 — Criar o arquivo de chaves
+     Copie o modelo e preencha com suas chaves reais (ver seção 9):
+     > copy .env.example .env        (Windows)
+     > cp .env.example .env          (Mac/Linux)
+     Depois abra o .env e cole suas chaves (APIFY_TOKEN, ANTHROPIC_API_KEY, DATABASE_URL...).
+
+  PASSO 3 — Preparar o banco de dados
+     Cria as tabelas no Postgres a partir do schema.prisma:
+     > npx prisma migrate dev --name init
+     (Opcional) gerar dados de exemplo:
+     > npx prisma db seed
+
+  PASSO 4 — Rodar o projeto em modo desenvolvimento
+     > npm run dev
+     Abra no navegador: http://localhost:3000
+
+  PASSO 5 — (Opcional) Abrir o visualizador do banco
+     > npx prisma studio
+     Útil para ver/editar os dados manualmente em http://localhost:5555
+
+  PASSO 6 — (Quando for ativar cobrança) Configurar webhook do Stripe
+     Seguir instruções no README; usar as chaves de TESTE do Stripe primeiro.
+
+==========================================================================================
+ 9. VARIÁVEIS DE AMBIENTE (.env) EXPLICADAS
+==========================================================================================
+
+O arquivo .env guarda suas chaves secretas. Modelo (.env.example):
+
+  # Banco de dados (Neon/Supabase) — string de conexão Postgres
+  DATABASE_URL="postgresql://usuario:senha@host:5432/banco"
+
+  # Login / sessões (Auth.js) — gere um segredo aleatório longo
+  NEXTAUTH_SECRET="um-texto-secreto-bem-grande-e-aleatorio"
+  NEXTAUTH_URL="http://localhost:3000"
+
+  # Coleta de Instagram (Apify)
+  APIFY_TOKEN="seu_token_da_apify"
+
+  # Inteligência Artificial (Claude / Anthropic)
+  ANTHROPIC_API_KEY="sua_chave_da_anthropic"
+
+  # Pagamentos (Stripe) — usar chaves de TESTE no começo
+  STRIPE_SECRET_KEY="sk_test_..."
+  STRIPE_WEBHOOK_SECRET="whsec_..."
+  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."
+
+  # Agendador (Inngest) — opcional no início
+  INNGEST_EVENT_KEY="..."
+  INNGEST_SIGNING_KEY="..."
+
+IMPORTANTE:
+  - O .env NUNCA deve ir para o GitHub (já está no .gitignore).
+  - Tudo que começa com NEXT_PUBLIC_ fica visível no navegador; o resto é só servidor.
+
+==========================================================================================
+ 10. COMO RODAR E USAR (FLUXO COMPLETO)
+==========================================================================================
+
+Depois de instalado (seção 8), o uso normal é assim:
+
+  1) Acesse http://localhost:3000 e faça cadastro/login.
+  2) Crie uma Organização (seu workspace).
+  3) Crie um PROJETO informando:
+        nicho:        ex. "Marketing Digital"
+        perfil:       ex. "@suaagencia"
+        concorrentes: ex. ["@concorrente1", "@concorrente2", "@concorrente3"]
+        objetivo:     ex. "gerar mais leads"
+        idioma:       pt-BR
+  4) Clique em "Coletar" -> o sistema chama a Apify e traz os posts dos concorrentes.
+  5) Clique em "Analisar" -> os 7 agentes processam e geram tudo.
+  6) Navegue pelos dashboards:
+        - Top Conteúdos, Ganchos Vencedores, Tendências, Gaps, Ideias, Roteiros, Alertas.
+  7) Abra "Relatórios" para ver o resumo executivo e o PLANO DE 7 DIAS.
+  8) (Automático) Com o agendador ligado, coletas e relatórios rodam sozinhos todos os dias,
+     e os ALERTAS aparecem quando algo relevante muda (viral, nova oferta, bio mudou...).
+
+==========================================================================================
+ 11. FASES DE CONSTRUÇÃO (ROADMAP)
+==========================================================================================
+
+O sistema será construído em fases (cada uma entrega algo funcional):
+
+  FASE 0 — FUNDAÇÃO
+     Projeto Next.js, banco (Prisma/Postgres), login (Auth.js), multi-tenant.
+
+  FASE 1 — COLETA (APIFY)
+     Camada plugável de coleta; adapter da Apify; normalização para o banco.
+
+  FASE 2 — MOTOR DE IA
+     Os 7 agentes + pipeline; saídas validadas (Zod); prompt caching.
+
+  FASE 3 — RECURSOS DE SAAS
+     Cobrança (Stripe), limites por plano, agendamento e sistema de alertas.
+
+  FASE 4 — FRONTEND / DASHBOARDS
+     Todas as telas: onboarding, projeto, concorrentes, tendências, ideias, roteiros,
+     gaps, alertas, relatórios e plano de 7 dias.
+
+==========================================================================================
+ 12. CUSTOS E LIMITES (APIFY + ANTHROPIC)
+==========================================================================================
+
+  APIFY (plano grátis):
+     - Dá créditos mensais limitados (cerca de US$ 5).
+     - Coletar muitos perfis/posts consome créditos rápido.
+     - Mitigação no produto: limites por plano e CACHE (não recoletar o que já temos).
+
+  ANTHROPIC / CLAUDE (pago por uso):
+     - Cada análise consome "tokens" (custo por volume de texto).
+     - Mitigação: prompt caching e processar só o que é novo/relevante.
+
+  Recomendação: comece com POUCOS concorrentes (1 a 3) e uma coleta por dia para
+  manter os custos baixos enquanto valida o produto.
+
+==========================================================================================
+ 13. GLOSSÁRIO RÁPIDO
+==========================================================================================
+
+  SaaS .............. Software vendido como assinatura, usado pelo navegador.
+  Multi-tenant ...... Vários clientes no mesmo sistema, com dados separados e isolados.
+  Frontend .......... A parte visual (telas que o usuário vê).
+  Backend ........... A parte do servidor (lógica, banco, integrações).
+  ORM (Prisma) ...... Ferramenta que traduz código <-> banco de dados.
+  Migration ......... Mudança versionada na estrutura do banco.
+  Adapter ........... Peça trocável; aqui, a fonte de coleta (hoje Apify; amanhã outra).
+  Actor (Apify) ..... Robô pronto na nuvem da Apify que coleta dados de um site.
+  Token (IA) ........ Unidade de medida de texto que define o custo da IA.
+  Prompt caching .... Reaproveitar instruções fixas para pagar menos por chamada de IA.
+  Webhook ........... Aviso automático que um serviço (ex.: Stripe) envia ao nosso sistema.
+  Cron / Agendador .. Mecanismo que roda tarefas em horários definidos (ex.: todo dia 8h).
+
+==========================================================================================
+ FIM — Próximo passo: construir a FASE 0 (Fundação).
+==========================================================================================

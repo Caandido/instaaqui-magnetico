@@ -1,0 +1,126 @@
+==========================================================================================
+ FASE 0 — FUNDAÇÃO
+ InstaAqui Magnético — Documentação passo a passo
+==========================================================================================
+
+Objetivo desta fase: criar a "base" do projeto. Ao final, você terá um site Next.js
+funcionando, conectado a um banco de dados, com sistema de login e separação de dados por
+cliente (multi-tenant). Ainda NÃO coleta Instagram nem usa IA — isso vem nas próximas fases.
+
+Pense nesta fase como construir a fundação e a estrutura de uma casa antes de mobiliar.
+
+------------------------------------------------------------------------------------------
+ O QUE ESTA FASE ENTREGA
+------------------------------------------------------------------------------------------
+  [ ] Projeto Next.js criado e rodando em http://localhost:3000
+  [ ] Estilo pronto (Tailwind + shadcn/ui)
+  [ ] Banco de dados conectado (Postgres) com Prisma
+  [ ] Tabelas iniciais: User, Organization, Membership, Subscription
+  [ ] Login e cadastro funcionando (Auth.js)
+  [ ] Multi-tenant: cada cliente só vê os dados da sua organização
+
+------------------------------------------------------------------------------------------
+ PRÉ-REQUISITOS DESTA FASE
+------------------------------------------------------------------------------------------
+  - Node.js 20+ instalado
+  - Uma conta de banco Postgres (Neon ou Supabase) com a DATABASE_URL em mãos
+  - Editor de código (VS Code)
+
+------------------------------------------------------------------------------------------
+ PASSO A PASSO
+------------------------------------------------------------------------------------------
+
+PASSO 1 — Criar o projeto Next.js
+  Comando:
+     > npx create-next-app@latest instaaqui-magnetico
+  Responda às perguntas escolhendo:
+     TypeScript: Sim | ESLint: Sim | Tailwind: Sim | src/ directory: Sim
+     App Router: Sim | import alias (@/*): Sim
+  Isso cria a estrutura básica de pastas (src/app, etc.).
+
+PASSO 2 — Instalar componentes de tela (shadcn/ui)
+  Comandos:
+     > npx shadcn@latest init
+     > npx shadcn@latest add button input card table dialog form
+  Isso adiciona botões, formulários e tabelas prontos em src/components/ui.
+
+PASSO 3 — Instalar e configurar o banco (Prisma)
+  Comandos:
+     > npm install prisma @prisma/client
+     > npx prisma init
+  Isso cria a pasta prisma/ com o arquivo schema.prisma.
+  No .env, preencha a DATABASE_URL com a string do Neon/Supabase.
+
+PASSO 4 — Definir as tabelas iniciais (prisma/schema.prisma)
+  Adicione as entidades de base:
+     - User         (id, nome, email, senha/login, datas)
+     - Organization (id, nome, dono, datas)  -> o "workspace" de cada cliente
+     - Membership   (liga User <-> Organization, com papel: dono/admin/membro)
+     - Subscription (plano do cliente; por enquanto pode ficar simples)
+  Conceito-chave (MULTI-TENANT): quase tudo no sistema pertence a uma Organization.
+  Assim, os dados de um cliente nunca se misturam com os de outro.
+
+PASSO 5 — Criar as tabelas no banco (migration)
+  Comando:
+     > npx prisma migrate dev --name init
+  Isso lê o schema.prisma e CRIA as tabelas no Postgres de verdade.
+
+PASSO 6 — Criar a conexão única com o banco (src/lib/db.ts)
+  Um arquivo que exporta o "Prisma Client" para o resto do código usar o banco com
+  segurança e sem abrir várias conexões à toa.
+
+PASSO 7 — Configurar login (Auth.js / NextAuth)
+  Comandos:
+     > npm install next-auth @auth/prisma-adapter
+  Arquivos:
+     - src/lib/auth.ts                 -> configuração (provedores, sessão, adapter Prisma)
+     - src/app/api/auth/[...nextauth]/route.ts -> a rota que o login usa
+     - src/app/(auth)/login/page.tsx   -> tela de login
+     - src/app/(auth)/signup/page.tsx  -> tela de cadastro
+  Comece com login por e-mail/senha (ou link mágico). OAuth (Google) pode entrar depois.
+
+PASSO 8 — Proteger a área logada e criar o seletor de workspace
+  - Ao logar, o usuário entra em sua Organization (ou cria uma na primeira vez).
+  - As páginas dentro de src/app/(app)/ só abrem se houver sessão válida.
+  - Um seletor no topo permite trocar de Organization (quem participa de mais de uma).
+
+PASSO 9 — Testar
+  Comando:
+     > npm run dev
+  Abra http://localhost:3000 e confirme:
+     [ ] Consigo me cadastrar
+     [ ] Consigo logar
+     [ ] Uma Organization é criada para mim
+     [ ] Não consigo ver dados de outra Organization
+
+------------------------------------------------------------------------------------------
+ ARQUIVOS CRIADOS/ALTERADOS NESTA FASE
+------------------------------------------------------------------------------------------
+  prisma/schema.prisma                         -> tabelas User/Organization/Membership/Subscription
+  prisma/migrations/                           -> migration "init"
+  src/lib/db.ts                                -> conexão com o banco
+  src/lib/auth.ts                              -> configuração de login
+  src/app/api/auth/[...nextauth]/route.ts      -> rota de autenticação
+  src/app/(auth)/login/page.tsx                -> tela de login
+  src/app/(auth)/signup/page.tsx               -> tela de cadastro
+  src/app/(app)/layout.tsx                     -> esqueleto da área logada (+ seletor de workspace)
+  .env                                         -> DATABASE_URL e NEXTAUTH_SECRET
+
+------------------------------------------------------------------------------------------
+ COMO SABER QUE A FASE 0 ESTÁ PRONTA (CHECKLIST FINAL)
+------------------------------------------------------------------------------------------
+  [ ] npm run dev abre o site sem erros
+  [ ] Cadastro e login funcionam
+  [ ] As 4 tabelas existem no banco (confira com: npx prisma studio)
+  [ ] Cada usuário tem sua Organization e não enxerga a de outro
+
+------------------------------------------------------------------------------------------
+ GLOSSÁRIO DESTA FASE
+------------------------------------------------------------------------------------------
+  Migration ...... mudança versionada na estrutura do banco (criar/alterar tabelas).
+  Prisma Client .. objeto no código que conversa com o banco.
+  Sessão ......... "crachá" que prova que o usuário está logado.
+  Multi-tenant ... vários clientes no mesmo sistema, com dados isolados por Organization.
+
+  Próxima fase: FASE 1 — COLETA (APIFY).
+==========================================================================================

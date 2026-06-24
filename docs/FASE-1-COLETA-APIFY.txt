@@ -1,0 +1,126 @@
+==========================================================================================
+ FASE 1 — COLETA DE DADOS (APIFY)
+ InstaAqui Magnético — Documentação passo a passo
+==========================================================================================
+
+Objetivo desta fase: fazer o sistema BUSCAR os dados dos concorrentes no Instagram usando
+a Apify, e GUARDAR esses dados no banco de forma organizada. Ao final, você cria um projeto,
+clica em "Coletar" e os posts dos concorrentes aparecem salvos.
+
+Ainda NÃO tem IA aqui (isso é a Fase 2). Esta fase só TRAZ e ARMAZENA os dados.
+
+------------------------------------------------------------------------------------------
+ O QUE ESTA FASE ENTREGA
+------------------------------------------------------------------------------------------
+  [ ] Tabelas Project, Competitor, Content, CollectionJob no banco
+  [ ] Uma "camada de coleta" plugável (hoje Apify; amanhã trocável sem reescrever tudo)
+  [ ] Botão/endpoint que dispara a coleta de um concorrente
+  [ ] Conversão (normalização) do JSON da Apify para o nosso formato
+  [ ] Controle de status da coleta (pendente/rodando/concluída/erro)
+
+------------------------------------------------------------------------------------------
+ ENTENDA A APIFY EM 1 MINUTO
+------------------------------------------------------------------------------------------
+  - Apify é um serviço em NUVEM que roda "Actors" (robôs prontos) que coletam dados de sites.
+  - Para Instagram existem Actors prontos, por exemplo:
+        apify/instagram-profile-scraper  -> dados do perfil (bio, link, seguidores)
+        apify/instagram-scraper          -> posts/reels de um perfil
+  - Você chama a Apify pela API, passando os @ dos perfis. Ela roda na nuvem dela e devolve
+    um "dataset" (lista de resultados em JSON).
+  - VANTAGEM: como roda na nuvem da Apify, NÃO arrisca banir a sua conta do Instagram.
+
+------------------------------------------------------------------------------------------
+ PRÉ-REQUISITOS DESTA FASE
+------------------------------------------------------------------------------------------
+  - Fase 0 concluída (login + banco funcionando)
+  - Conta na Apify e o APIFY_TOKEN colado no .env
+
+------------------------------------------------------------------------------------------
+ PASSO A PASSO
+------------------------------------------------------------------------------------------
+
+PASSO 1 — Instalar o cliente da Apify
+  Comando:
+     > npm install apify-client
+  No .env, confirme:
+     APIFY_TOKEN="seu_token_da_apify"
+
+PASSO 2 — Criar as tabelas desta fase (prisma/schema.prisma)
+  Adicione:
+     - Project       { nicho, perfil, objetivo, idioma } (ligado à Organization)
+     - Competitor    { handle/@, bio, cta, link, posicionamento, promessa } (ligado ao Project)
+     - Content       { tipo, legenda, mídia, métricas, data } (ligado ao Competitor)
+     - CollectionJob { status, datas, erro } (registro de cada coleta)
+  Depois rode:
+     > npx prisma migrate dev --name coleta
+
+PASSO 3 — Definir o "contrato" da coleta (src/lib/collectors/types.ts)
+  Aqui criamos a interface CollectorAdapter: define ENTRADA e SAÍDA padrão de qualquer
+  fonte de dados. Exemplo de ideia:
+        coletarPerfil(handle)  -> dados do perfil
+        coletarPosts(handle)   -> lista de posts
+  Por que isso importa: amanhã, se quiser trocar Apify por outra fonte, basta criar um novo
+  adapter que siga esse mesmo contrato — o resto do sistema nem percebe a troca.
+
+PASSO 4 — Implementar o adapter da Apify (src/lib/collectors/apify.ts)
+  Aqui usamos o apify-client para:
+     1) iniciar o Actor com a lista de @ (perfis)
+     2) aguardar o run terminar
+     3) ler o dataset com os resultados
+  Tratar erros (token inválido, perfil privado, sem créditos) e tentar de novo se preciso.
+
+PASSO 5 — Normalizar os dados (src/lib/collectors/normalize.ts)
+  O JSON da Apify vem com nomes/formatos dela. Aqui convertemos para o NOSSO formato
+  (entidades Competitor e Content). Ex.: pegar curtidas, comentários, views, legenda, data e
+  o tipo (Reels/Carrossel/Post) e salvar bonitinho no banco.
+
+PASSO 6 — Criar o endpoint que dispara a coleta (src/app/api/coleta/route.ts)
+  Quando chamado, ele:
+     1) cria um CollectionJob com status "rodando"
+     2) chama o apifyAdapter para buscar perfil + posts
+     3) normaliza e salva no banco (Competitor/Content)
+     4) atualiza o CollectionJob para "concluída" (ou "erro")
+
+PASSO 7 — (Opcional nesta fase) botão na tela
+  Uma tela simples do projeto com botão "Coletar" que chama o endpoint acima e mostra o
+  status. (As telas completas ficam para a Fase 4, mas um botão de teste já ajuda.)
+
+PASSO 8 — Cuidar dos CRÉDITOS (importante!)
+  - O plano grátis da Apify tem créditos limitados (~US$ 5/mês).
+  - Boas práticas já nesta fase:
+        * limitar quantos posts coletar por perfil (ex.: últimos 30)
+        * NÃO recoletar o que já está no banco (cache)
+        * deixar a quantidade configurável por plano do SaaS
+
+------------------------------------------------------------------------------------------
+ COMO TESTAR ESTA FASE
+------------------------------------------------------------------------------------------
+  1) Crie um Project com 1 concorrente real (ex.: @umperfilpublico).
+  2) Dispare a coleta (botão ou chamando /api/coleta).
+  3) Abra o banco: > npx prisma studio
+  4) Confira:
+        [ ] Competitor foi criado com bio/link
+        [ ] Vários Content (posts) foram salvos com métricas
+        [ ] CollectionJob terminou com status "concluída"
+
+------------------------------------------------------------------------------------------
+ ARQUIVOS CRIADOS/ALTERADOS NESTA FASE
+------------------------------------------------------------------------------------------
+  prisma/schema.prisma                 -> tabelas Project/Competitor/Content/CollectionJob
+  src/lib/collectors/types.ts          -> contrato CollectorAdapter (plugável)
+  src/lib/collectors/apify.ts          -> implementação com a Apify
+  src/lib/collectors/normalize.ts      -> conversão Apify -> nosso banco
+  src/app/api/coleta/route.ts          -> endpoint que dispara a coleta
+  .env                                 -> APIFY_TOKEN
+
+------------------------------------------------------------------------------------------
+ GLOSSÁRIO DESTA FASE
+------------------------------------------------------------------------------------------
+  Actor .......... robô pronto na nuvem da Apify que coleta dados.
+  Dataset ........ a lista de resultados que a Apify devolve.
+  Adapter ........ peça trocável; aqui, a fonte de coleta.
+  Normalizar ..... converter os dados de fora para o formato do nosso banco.
+  Cache .......... reaproveitar dados já coletados para não gastar créditos à toa.
+
+  Anterior: FASE 0 — Fundação | Próxima: FASE 2 — Motor de IA.
+==========================================================================================

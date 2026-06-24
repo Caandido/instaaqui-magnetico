@@ -1,0 +1,130 @@
+==========================================================================================
+ FASE 3 — RECURSOS DE SAAS (COBRANÇA, AGENDAMENTO E ALERTAS)
+ InstaAqui Magnético — Documentação passo a passo
+==========================================================================================
+
+Objetivo desta fase: transformar o sistema em um SaaS de verdade, que cobra assinatura,
+roda sozinho (coletas e relatórios automáticos) e avisa o usuário quando algo importante
+acontece (alertas). Ao final, o produto funciona "no piloto automático" e gera receita.
+
+------------------------------------------------------------------------------------------
+ O QUE ESTA FASE ENTREGA
+------------------------------------------------------------------------------------------
+  [ ] Cobrança por assinatura (Stripe) com planos e limites
+  [ ] Limites por plano (ex.: quantos concorrentes monitorar)
+  [ ] Agendamento automático (coletas + relatórios diário/semanal)
+  [ ] Sistema de Alertas (novo viral, novo formato, nova oferta, bio mudou, tendência)
+  [ ] Tabela Alert e geração de Report agendada
+
+------------------------------------------------------------------------------------------
+ PRÉ-REQUISITOS DESTA FASE
+------------------------------------------------------------------------------------------
+  - Fases 0, 1 e 2 concluídas (login, coleta e IA funcionando)
+  - Conta Stripe (chaves de TESTE) no .env
+  - Conta no agendador (Inngest) OU Redis para BullMQ
+
+==========================================================================================
+ PARTE A — COBRANÇA (STRIPE)
+==========================================================================================
+
+PASSO A1 — Instalar o Stripe
+  Comando:
+     > npm install stripe
+  No .env:
+     STRIPE_SECRET_KEY="sk_test_..."
+     STRIPE_WEBHOOK_SECRET="whsec_..."
+     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."
+
+PASSO A2 — Criar os planos no painel do Stripe
+  Ex.: Free / Pro / Agência. Cada um com preço e limites diferentes.
+
+PASSO A3 — Lógica de cobrança (src/lib/stripe.ts)
+  - Criar sessão de checkout (cliente assina).
+  - Atualizar a Subscription do cliente quando o pagamento muda.
+  - Função "verificar limite" (ex.: este plano permite X concorrentes?).
+
+PASSO A4 — Webhook do Stripe (src/app/api/stripe/webhook/route.ts)
+  O Stripe AVISA o nosso sistema quando alguém assina, paga ou cancela.
+  Aqui atualizamos a Subscription no banco conforme esses eventos.
+
+PASSO A5 — Aplicar os limites no produto
+  Antes de coletar/criar concorrente, checar o plano. Se passou do limite, pedir upgrade.
+
+==========================================================================================
+ PARTE B — AGENDAMENTO (ROTINA AUTOMÁTICA)
+==========================================================================================
+
+PASSO B1 — Instalar o agendador
+  Opção recomendada (mais simples): Inngest
+     > npm install inngest
+  Alternativa: BullMQ + Redis (mais controle, exige um Redis rodando).
+
+PASSO B2 — Configurar (src/inngest/client.ts e src/inngest/functions.ts)
+  Definir tarefas que rodam em horários, por exemplo:
+     - Coleta diária dos concorrentes de cada projeto ativo
+     - Geração do relatório DIÁRIO (de manhã)
+     - Geração do relatório SEMANAL (segunda-feira)
+
+PASSO B3 — Conectar as tarefas ao que já existe
+  As tarefas agendadas simplesmente chamam o que já foi feito:
+     - a coleta da Fase 1 (apifyAdapter)
+     - o pipeline de IA da Fase 2
+  Ou seja, o agendador é só o "despertador" que aciona o que já funciona.
+
+==========================================================================================
+ PARTE C — SISTEMA DE ALERTAS
+==========================================================================================
+
+PASSO C1 — Criar a tabela Alert (prisma/schema.prisma)
+     Alert { tipo, concorrente, descrição, impacto, ação_recomendada, data }
+  Depois:
+     > npx prisma migrate dev --name alertas
+
+PASSO C2 — Definir os GATILHOS de alerta
+  Após cada coleta/análise, comparar com o histórico e criar Alert quando detectar:
+     - NOVO VIRAL ...... post muito acima da média do concorrente
+     - NOVO FORMATO .... estrutura inédita aparecendo
+     - NOVA OFERTA ..... mudança de produto/posicionamento
+     - MUDANÇA DE BIO .. bio/CTA/link mudaram
+     - TENDÊNCIA ........ tema crescendo rápido (vem do Trend Hunter)
+
+PASSO C3 — Mostrar/entregar os alertas
+  - Salvar no banco e exibir na tela de Alertas (Fase 4).
+  - (Opcional) enviar por e-mail/notificação.
+  - Formato segue o CLAUDE.md:
+        🚨 ALERTA
+        Tipo / Concorrente / Descrição / Impacto / Ação Recomendada
+
+------------------------------------------------------------------------------------------
+ COMO TESTAR ESTA FASE
+------------------------------------------------------------------------------------------
+  COBRANÇA:
+     [ ] Assinar um plano com cartão de TESTE do Stripe funciona
+     [ ] O webhook atualiza a Subscription no banco
+     [ ] Ao estourar o limite do plano, o sistema bloqueia e sugere upgrade
+  AGENDAMENTO:
+     [ ] A tarefa diária roda e gera um Report sem clique manual
+  ALERTAS:
+     [ ] Forçar uma mudança (ex.: novo post forte) gera um Alert correto
+
+------------------------------------------------------------------------------------------
+ ARQUIVOS CRIADOS/ALTERADOS NESTA FASE
+------------------------------------------------------------------------------------------
+  src/lib/stripe.ts                        -> lógica de cobrança e limites
+  src/app/api/stripe/webhook/route.ts      -> recebe eventos do Stripe
+  src/inngest/client.ts                    -> configuração do agendador
+  src/inngest/functions.ts                 -> tarefas agendadas (coleta/relatórios)
+  src/lib/ai/alertas.ts                    -> lógica de gatilhos de alerta
+  prisma/schema.prisma                     -> tabela Alert (e ajustes em Subscription)
+  .env                                     -> chaves Stripe + Inngest
+
+------------------------------------------------------------------------------------------
+ GLOSSÁRIO DESTA FASE
+------------------------------------------------------------------------------------------
+  Webhook ........ aviso automático que o Stripe envia ao nosso sistema.
+  Checkout ....... a tela/processo de pagamento.
+  Cron/Agendador . roda tarefas em horários definidos (ex.: todo dia 8h).
+  Gatilho ........ condição que, quando atendida, dispara um alerta.
+
+  Anterior: FASE 2 — Motor de IA | Próxima: FASE 4 — Frontend / Dashboards.
+==========================================================================================

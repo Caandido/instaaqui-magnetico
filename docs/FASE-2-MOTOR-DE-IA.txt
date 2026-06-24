@@ -1,0 +1,134 @@
+==========================================================================================
+ FASE 2 — MOTOR DE IA (OS 7 AGENTES)
+ InstaAqui Magnético — Documentação passo a passo
+==========================================================================================
+
+Objetivo desta fase: pegar os dados já coletados (Fase 1) e transformá-los em INTELIGÊNCIA
+usando a IA da Anthropic (Claude). Ao final, ao clicar em "Analisar", o sistema gera:
+classificações, padrões de viralização, 20+ ideias, roteiros, gaps, tendências e relatórios.
+
+Esta é a fase que faz o produto "pensar".
+
+------------------------------------------------------------------------------------------
+ O QUE ESTA FASE ENTREGA
+------------------------------------------------------------------------------------------
+  [ ] Cliente Claude configurado com "prompt caching" (para economizar)
+  [ ] Formatos de saída validados (Zod) — a IA nunca devolve algo "torto"
+  [ ] Os 6 agentes de IA (o 1, Coletor, já foi feito na Fase 1)
+  [ ] Um "pipeline" que chama os agentes na ordem certa
+  [ ] Tabelas: Classification, Insight, Idea, Script, Gap, Trend, Report
+
+------------------------------------------------------------------------------------------
+ COMO A IA É USADA AQUI (IDEIA GERAL)
+------------------------------------------------------------------------------------------
+  - Cada "agente" é uma função que RECEBE dados e DEVOLVE um resultado em formato fixo.
+  - Para garantir formato fixo, usamos "schemas" (Zod): se a IA fugir do formato, o sistema
+    pede de novo. Isso evita resultados quebrados.
+  - "Prompt caching": as instruções fixas de cada agente são reaproveitadas entre chamadas,
+    reduzindo bastante o custo (paga-se por volume de texto = "tokens").
+
+------------------------------------------------------------------------------------------
+ PRÉ-REQUISITOS DESTA FASE
+------------------------------------------------------------------------------------------
+  - Fase 1 concluída (já existem Content coletados no banco)
+  - Conta na Anthropic e a ANTHROPIC_API_KEY no .env
+
+------------------------------------------------------------------------------------------
+ PASSO A PASSO
+------------------------------------------------------------------------------------------
+
+PASSO 1 — Instalar o SDK da IA
+  Comando:
+     > npm install @anthropic-ai/sdk zod
+  No .env, confirme:
+     ANTHROPIC_API_KEY="sua_chave"
+
+PASSO 2 — Criar o cliente da IA (src/lib/ai/anthropic.ts)
+  - Inicializa o Claude com a chave.
+  - Centraliza o uso de PROMPT CACHING (instruções fixas marcadas para cache).
+  - Função utilitária para "pedir JSON validado" (a IA responde, o Zod confere).
+
+PASSO 3 — Definir os formatos de saída (src/lib/ai/schemas.ts)
+  Schemas Zod para cada tipo de resultado, seguindo o CLAUDE.md:
+     - Classificação (categoria, formato, objetivo)
+     - Insight (gancho, narrativa, CTA, motivo do sucesso)
+     - Ideia (título, gancho, estrutura, CTA, potencial: Alto/Médio/Baixo)
+     - Roteiro (objetivo, gancho, cenas, CTA, legenda)
+     - Gap (tema, motivo, potencial, recomendação)
+     - Tendência (assunto/formato/gancho crescente)
+     - Alerta (tipo, concorrente, descrição, impacto, ação)
+
+PASSO 4 — Criar as tabelas de resultados (prisma/schema.prisma)
+  Adicione: Classification, Insight, Idea, Script, Gap, Trend, Report.
+  Depois:
+     > npx prisma migrate dev --name ia
+
+PASSO 5 — Implementar os agentes (um arquivo cada, em src/lib/ai/)
+  AGENTE 2 — classificador.ts
+     Lê cada Content e devolve categoria/formato/objetivo -> salva em Classification.
+  AGENTE 3 — viralizacao.ts
+     Pega os posts que mais performaram e extrai padrões; faz engenharia reversa
+     (Gancho -> Desenvolvimento -> CTA -> Motivo) -> salva em Insight.
+  AGENTE 4 — estrategista.ts
+     Usa os insights para achar OPORTUNIDADES e GAPS -> salva em Gap.
+  AGENTE 5 — copywriter.ts
+     Gera NO MÍNIMO 20 ideias e os roteiros (formatos do CLAUDE.md) -> Idea e Script.
+  AGENTE 6 — trend-hunter.ts
+     Compara janelas de tempo (esta semana x anteriores) -> Trend.
+  AGENTE 7 — report-generator.ts
+     Junta tudo nos 9 entregáveis + relatório diário/semanal + plano de 7 dias -> Report.
+
+PASSO 6 — Orquestrar tudo (src/lib/ai/pipeline.ts)
+  Encadeia os agentes na ordem:
+     classificar -> viralização -> estrategista -> copywriter -> trend hunter -> relatório
+  Recebe um Project (com seus Content) e produz todos os resultados, salvando no banco.
+
+PASSO 7 — Endpoint para rodar a análise (src/app/api/analise/route.ts)
+  Quando chamado, dispara o pipeline para um Project e devolve um resumo do que foi gerado.
+
+PASSO 8 — Cuidar do CUSTO de IA
+  - Processar só o que é novo/relevante (não reanalisar tudo toda vez).
+  - Usar prompt caching nas instruções fixas.
+  - Em conteúdos muito numerosos, resumir/filtrar antes de mandar para a IA.
+
+------------------------------------------------------------------------------------------
+ COMO TESTAR ESTA FASE
+------------------------------------------------------------------------------------------
+  1) Tenha um Project com Content já coletados (Fase 1).
+  2) Chame /api/analise para esse Project.
+  3) Abra: > npx prisma studio
+  4) Confira que foram gerados:
+        [ ] Classifications para os posts
+        [ ] Insights (ganchos/narrativas/CTAs)
+        [ ] 20+ Ideas
+        [ ] Scripts (roteiros)
+        [ ] Gaps
+        [ ] Trends
+        [ ] Um Report com os 9 entregáveis + plano de 7 dias
+
+------------------------------------------------------------------------------------------
+ ARQUIVOS CRIADOS/ALTERADOS NESTA FASE
+------------------------------------------------------------------------------------------
+  src/lib/ai/anthropic.ts          -> cliente Claude + prompt caching
+  src/lib/ai/schemas.ts            -> formatos de saída (Zod)
+  src/lib/ai/classificador.ts      -> Agente 2
+  src/lib/ai/viralizacao.ts        -> Agente 3
+  src/lib/ai/estrategista.ts       -> Agente 4
+  src/lib/ai/copywriter.ts         -> Agente 5
+  src/lib/ai/trend-hunter.ts       -> Agente 6
+  src/lib/ai/report-generator.ts   -> Agente 7
+  src/lib/ai/pipeline.ts           -> orquestra os agentes
+  src/app/api/analise/route.ts     -> endpoint que roda o pipeline
+  prisma/schema.prisma             -> tabelas de resultados
+
+------------------------------------------------------------------------------------------
+ GLOSSÁRIO DESTA FASE
+------------------------------------------------------------------------------------------
+  Agente ......... função de IA com um papel específico.
+  Pipeline ....... sequência de etapas (agentes) que rodam em ordem.
+  Schema (Zod) ... formato esperado da resposta; valida e evita resultado quebrado.
+  Token .......... unidade de texto que define o custo da IA.
+  Prompt caching . reaproveitar instruções fixas para pagar menos.
+
+  Anterior: FASE 1 — Coleta (Apify) | Próxima: FASE 3 — Recursos de SaaS.
+==========================================================================================

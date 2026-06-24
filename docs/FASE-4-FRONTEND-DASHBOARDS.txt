@@ -1,0 +1,119 @@
+==========================================================================================
+ FASE 4 — FRONTEND / DASHBOARDS (AS TELAS DO PRODUTO)
+ InstaAqui Magnético — Documentação passo a passo
+==========================================================================================
+
+Objetivo desta fase: construir TODAS as telas que o usuário usa, deixando o produto bonito
+e fácil. Aqui ligamos tudo o que já foi feito (coleta + IA + alertas) a uma interface
+visual. Ao final, o usuário faz tudo pelo navegador, sem mexer em código.
+
+------------------------------------------------------------------------------------------
+ O QUE ESTA FASE ENTREGA
+------------------------------------------------------------------------------------------
+  [ ] Onboarding: criar projeto com os inputs da spec
+  [ ] Tela de concorrentes monitorados
+  [ ] Dashboards: Top Conteúdos, Ganchos, Tendências, Gaps, Ideias, Roteiros, Alertas
+  [ ] Tela de relatórios (diário/semanal) + Plano de 7 dias
+  [ ] Tela de configurações (plano/billing/equipe)
+
+------------------------------------------------------------------------------------------
+ PRÉ-REQUISITOS DESTA FASE
+------------------------------------------------------------------------------------------
+  - Fases 0 a 3 concluídas (login, coleta, IA, billing e alertas funcionando)
+  - Componentes de UI (shadcn/ui) instalados na Fase 0
+
+------------------------------------------------------------------------------------------
+ PASSO A PASSO (POR TELA)
+------------------------------------------------------------------------------------------
+
+PASSO 1 — Onboarding / Criar Projeto
+  Tela: src/app/(app)/projetos/page.tsx (lista) + formulário de novo projeto.
+  Coleta os inputs do CLAUDE.md:
+     nicho, perfil, concorrentes[], objetivo, idioma.
+  Ao salvar, cria o Project e leva para a página dele.
+
+PASSO 2 — Página do Projeto (visão geral)
+  Tela: src/app/(app)/projetos/[id]/page.tsx
+  Mostra: concorrentes, status da última coleta, botões "Coletar" e "Analisar",
+  e atalhos para os dashboards.
+
+PASSO 3 — Concorrentes
+  Tela: .../[id]/concorrentes
+  Lista os Competitors com bio, link, posicionamento e métricas resumidas.
+
+PASSO 4 — Top Conteúdos
+  Tela: .../[id]/conteudos
+  Tabela/cards dos posts ordenados por desempenho, com categoria/formato/objetivo.
+
+PASSO 5 — Tendências (Radar)
+  Tela: .../[id]/tendencias
+  Mostra os Trends: assuntos/formatos/ganchos crescentes.
+
+PASSO 6 — Gaps (Oportunidades)
+  Tela: .../[id]/gaps
+  Lista os Gaps no formato: Tema / Motivo / Potencial / Recomendação.
+
+PASSO 7 — Ideias
+  Tela: .../[id]/ideias
+  Mostra as 20+ Ideas (Título, Gancho, Estrutura, CTA, Potencial). Permite favoritar/copiar.
+
+PASSO 8 — Roteiros
+  Tela: .../[id]/roteiros
+  Mostra os Scripts (Objetivo, Gancho, Cenas, CTA, Legenda). Botão de copiar.
+
+PASSO 9 — Alertas
+  Tela: .../[id]/alertas
+  Lista os Alerts no formato 🚨 (Tipo / Concorrente / Descrição / Impacto / Ação).
+
+PASSO 10 — Relatórios + Plano de 7 dias
+  Tela: .../[id]/relatorios
+  Mostra o relatório diário/semanal: resumo executivo, top conteúdos, tendências,
+  recomendações e o PLANO DE 7 DIAS.
+
+PASSO 11 — Configurações
+  Tela: src/app/(app)/configuracoes/page.tsx
+  Plano atual, upgrade (Stripe), membros da equipe e dados da organização.
+
+PASSO 12 — Polimento
+  - Estados de carregamento ("coletando...", "analisando...").
+  - Estados vazios ("ainda não há dados — clique em Coletar").
+  - Mensagens de erro amigáveis (sem créditos, perfil privado, etc.).
+  - Responsivo (funciona no celular).
+
+------------------------------------------------------------------------------------------
+ COMO TESTAR ESTA FASE (FLUXO COMPLETO DO USUÁRIO)
+------------------------------------------------------------------------------------------
+  1) Logar -> criar projeto com nicho/perfil/concorrentes/objetivo.
+  2) Clicar em "Coletar" -> ver status mudar e dados aparecerem.
+  3) Clicar em "Analisar" -> ver dashboards preenchidos.
+  4) Navegar por: Top Conteúdos, Tendências, Gaps, Ideias, Roteiros, Alertas.
+  5) Abrir Relatórios e conferir o Plano de 7 dias.
+  6) Em Configurações, testar upgrade de plano (cartão de teste).
+  Tudo isso SEM tocar em código.
+
+------------------------------------------------------------------------------------------
+ ARQUIVOS CRIADOS/ALTERADOS NESTA FASE
+------------------------------------------------------------------------------------------
+  src/app/(app)/projetos/page.tsx                  -> lista + criar projeto
+  src/app/(app)/projetos/[id]/page.tsx             -> visão geral do projeto
+  src/app/(app)/projetos/[id]/concorrentes/...     -> concorrentes
+  src/app/(app)/projetos/[id]/conteudos/...        -> top conteúdos
+  src/app/(app)/projetos/[id]/tendencias/...       -> radar de tendências
+  src/app/(app)/projetos/[id]/gaps/...             -> gaps
+  src/app/(app)/projetos/[id]/ideias/...           -> ideias
+  src/app/(app)/projetos/[id]/roteiros/...         -> roteiros
+  src/app/(app)/projetos/[id]/alertas/...          -> alertas
+  src/app/(app)/projetos/[id]/relatorios/...       -> relatórios + plano 7 dias
+  src/app/(app)/configuracoes/page.tsx             -> plano/billing/equipe
+  src/components/...                               -> cards, tabelas e gráficos reutilizáveis
+
+------------------------------------------------------------------------------------------
+ GLOSSÁRIO DESTA FASE
+------------------------------------------------------------------------------------------
+  Onboarding ...... primeiros passos do usuário (criar conta/projeto).
+  Dashboard ....... painel visual com os dados e resultados.
+  Estado vazio .... o que a tela mostra quando ainda não há dados.
+  Responsivo ...... se adapta a celular, tablet e computador.
+
+  Anterior: FASE 3 — Recursos de SaaS. Esta é a última fase do MVP completo.
+==========================================================================================
