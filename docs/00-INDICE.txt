@@ -33,7 +33,9 @@ feature futura do projeto. Tudo escrito em português, para qualquer pessoa ente
              - Atualizar o Vercel CLI (npm i -g vercel@latest) — o local esta em v52 (defasado).
              - Se persistir, re-linkar a integracao GitHub->Vercel ou disparar "Redeploy" pela UI.
         2) Definir APIFY_TOKEN nas env vars da Vercel e testar a coleta ponta a ponta.)
-  [ ] FASE 2 — Motor de IA
+  [~] FASE 2 — Motor de IA  (código PRONTO e validado: `next build` passa com os 6 agentes,
+      o pipeline, /api/analise e a tela /projetos/[id]. Falta definir ANTHROPIC_API_KEY no
+      Vercel e destravar o deploy — ver pendências da Fase 1 acima.)
   [ ] FASE 3 — Recursos de SaaS
   [ ] FASE 4 — Frontend / Dashboards
   (Marque com X conforme cada fase for concluída.)

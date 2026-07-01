@@ -8,7 +8,7 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  url       = env("DATABASE_URL")          // conexão "pooled" (uso normal do app)
+  url       = env("DATABASE_URL") // conexão "pooled" (uso normal do app)
   directUrl = env("DATABASE_URL_UNPOOLED") // conexão direta (migrações) — Vercel/Neon
 }
 
@@ -36,26 +36,26 @@ enum SubscriptionStatus {
 }
 
 model User {
-  id            String       @id @default(cuid())
+  id            String    @id @default(cuid())
   name          String?
-  email         String       @unique
+  email         String    @unique
   emailVerified DateTime?
   image         String?
   passwordHash  String? // login por e-mail/senha (null se for só OAuth)
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  memberships   Membership[]
-  accounts      Account[]
-  sessions      Session[]
+  memberships Membership[]
+  accounts    Account[]
+  sessions    Session[]
 }
 
 model Organization {
-  id           String        @id @default(cuid())
-  name         String
-  slug         String        @unique
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   memberships  Membership[]
   subscription Subscription?
@@ -63,9 +63,9 @@ model Organization {
 }
 
 model Membership {
-  id             String       @id @default(cuid())
-  role           Role         @default(OWNER)
-  createdAt      DateTime     @default(now())
+  id        String   @id @default(cuid())
+  role      Role     @default(OWNER)
+  createdAt DateTime @default(now())
 
   userId         String
   user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -86,8 +86,8 @@ model Subscription {
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
 
-  organizationId       String             @unique
-  organization         Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String       @unique
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 // ----------------------------------------------------------------------------
@@ -111,66 +111,77 @@ enum JobStatus {
 }
 
 model Project {
-  id             String       @id @default(cuid())
-  name           String
-  niche          String? // nicho
-  handle         String? // perfil próprio (@)
-  objective      String? // objetivo
-  language       String       @default("pt-BR")
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  id        String   @id @default(cuid())
+  name      String
+  niche     String? // nicho
+  handle    String? // perfil próprio (@)
+  objective String? // objetivo
+  language  String   @default("pt-BR")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-  competitors    Competitor[]
-  jobs           CollectionJob[]
+  competitors Competitor[]
+  jobs        CollectionJob[]
+
+  analysisRuns AnalysisRun[]
+  insights     Insight[]
+  ideas        Idea[]
+  scripts      Script[]
+  gaps         Gap[]
+  trends       Trend[]
+  reports      Report[]
 
   @@index([organizationId])
 }
 
 model Competitor {
-  id             String    @id @default(cuid())
-  handle         String // @ do concorrente (sem o @)
-  displayName    String?
-  bio            String?
-  cta            String?
-  link           String?
-  positioning    String? // posicionamento
-  promise        String? // promessa principal
-  followers      Int?
-  following      Int?
-  postsCount     Int?
-  profilePicUrl  String?
+  id              String    @id @default(cuid())
+  handle          String // @ do concorrente (sem o @)
+  displayName     String?
+  bio             String?
+  cta             String?
+  link            String?
+  positioning     String? // posicionamento
+  promise         String? // promessa principal
+  followers       Int?
+  following       Int?
+  postsCount      Int?
+  profilePicUrl   String?
   lastCollectedAt DateTime?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
-  projectId      String
-  project        Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-  contents       Content[]
+  contents Content[]
 
   @@unique([projectId, handle])
   @@index([projectId])
 }
 
 model Content {
-  id            String      @id @default(cuid())
-  externalId    String // id/shortcode do post no Instagram
-  type          ContentType @default(UNKNOWN)
-  caption       String?
-  url           String?
-  mediaUrl      String?
-  thumbnailUrl  String?
-  likes         Int?
-  comments      Int?
-  views         Int?
-  postedAt      DateTime?
-  createdAt     DateTime    @default(now())
+  id           String      @id @default(cuid())
+  externalId   String // id/shortcode do post no Instagram
+  type         ContentType @default(UNKNOWN)
+  caption      String?
+  url          String?
+  mediaUrl     String?
+  thumbnailUrl String?
+  likes        Int?
+  comments     Int?
+  views        Int?
+  postedAt     DateTime?
+  createdAt    DateTime    @default(now())
 
-  competitorId  String
-  competitor    Competitor  @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+  competitorId String
+  competitor   Competitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+
+  classification Classification?
+  insights       Insight[]
 
   @@unique([competitorId, externalId])
   @@index([competitorId])
@@ -186,13 +197,157 @@ model CollectionJob {
   startedAt      DateTime  @default(now())
   finishedAt     DateTime?
 
-  projectId      String
-  project        Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-  competitorId   String?
+  competitorId String?
 
   @@index([projectId])
   @@index([apifyRunId])
+}
+
+// ----------------------------------------------------------------------------
+// Fase 2 — Motor de IA: resultados gerados pelos agentes (Claude).
+// ----------------------------------------------------------------------------
+
+enum AnalysisStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+enum Potential {
+  ALTO
+  MEDIO
+  BAIXO
+}
+
+enum ReportType {
+  DIARIO
+  SEMANAL
+}
+
+// Uma execução do pipeline de IA para um projeto (rastreio + contadores).
+model AnalysisRun {
+  id            String         @id @default(cuid())
+  status        AnalysisStatus @default(PENDING)
+  error         String?
+  contentsSeen  Int            @default(0)
+  ideasCount    Int            @default(0)
+  insightsCount Int            @default(0)
+  startedAt     DateTime       @default(now())
+  finishedAt    DateTime?
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+}
+
+// Agente 2 — Classificador: categoria/formato/objetivo por conteúdo.
+model Classification {
+  id        String   @id @default(cuid())
+  category  String // Educacional, Autoridade, Bastidores, Prova Social, Oferta, Tendência, Polêmico, Entretenimento
+  format    String // Reels, Carrossel, Story, Meme, Corte, UGC
+  objective String // Alcance, Engajamento, Conversão, Branding
+  createdAt DateTime @default(now())
+
+  contentId String  @unique
+  content   Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+}
+
+// Agente 3 — Analista de Viralização: engenharia reversa e padrões.
+model Insight {
+  id          String   @id @default(cuid())
+  hook        String // gancho
+  development String // desenvolvimento
+  cta         String
+  narrative   String? // narrativa identificada (Problema→Solução, Antes→Depois, etc.)
+  reason      String // motivo do sucesso
+  createdAt   DateTime @default(now())
+
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  contentId String?
+  content   Content? @relation(fields: [contentId], references: [id], onDelete: SetNull)
+
+  @@index([projectId])
+}
+
+// Agente 5 — Copywriter: ideias de conteúdo.
+model Idea {
+  id        String    @id @default(cuid())
+  title     String
+  hook      String
+  structure String
+  cta       String
+  potential Potential @default(MEDIO)
+  createdAt DateTime  @default(now())
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+}
+
+// Agente 5 — Copywriter: roteiros.
+model Script {
+  id        String   @id @default(cuid())
+  objective String
+  hook      String
+  scenes    String // cenas (texto multi-linha)
+  cta       String
+  caption   String // legenda sugerida
+  createdAt DateTime @default(now())
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+}
+
+// Agente 4 — Estrategista: gaps de conteúdo.
+model Gap {
+  id             String    @id @default(cuid())
+  theme          String
+  reason         String
+  potential      Potential @default(MEDIO)
+  recommendation String
+  createdAt      DateTime  @default(now())
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+}
+
+// Agente 6 — Trend Hunter: tendências emergentes.
+model Trend {
+  id          String   @id @default(cuid())
+  kind        String // assunto | formato | gancho | narrativa
+  title       String
+  description String
+  createdAt   DateTime @default(now())
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+}
+
+// Agente 7 — Report Generator: relatório consolidado (9 entregáveis + plano 7 dias).
+model Report {
+  id        String     @id @default(cuid())
+  type      ReportType @default(DIARIO)
+  summary   String // resumo executivo (texto)
+  payload   Json // estrutura completa dos 9 entregáveis + plano de 7 dias
+  createdAt DateTime   @default(now())
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
 }
 
 // ----------------------------------------------------------------------------

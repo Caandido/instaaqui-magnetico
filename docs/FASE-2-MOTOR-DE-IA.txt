@@ -12,11 +12,21 @@ Esta é a fase que faz o produto "pensar".
 ------------------------------------------------------------------------------------------
  O QUE ESTA FASE ENTREGA
 ------------------------------------------------------------------------------------------
-  [ ] Cliente Claude configurado com "prompt caching" (para economizar)
-  [ ] Formatos de saída validados (Zod) — a IA nunca devolve algo "torto"
-  [ ] Os 6 agentes de IA (o 1, Coletor, já foi feito na Fase 1)
-  [ ] Um "pipeline" que chama os agentes na ordem certa
-  [ ] Tabelas: Classification, Insight, Idea, Script, Gap, Trend, Report
+  [X] Cliente Claude configurado com "prompt caching" (para economizar)
+  [X] Formatos de saída validados (Zod) — a IA nunca devolve algo "torto"
+  [X] Os 6 agentes de IA (o 1, Coletor, já foi feito na Fase 1)
+  [X] Um "pipeline" que chama os agentes na ordem certa
+  [X] Tabelas: Classification, Insight, Idea, Script, Gap, Trend, Report
+  [X] Endpoint /api/analise + telas de resultados (/projetos/[id])
+
+  Observações da implementação:
+  - Modelo usado: claude-opus-4-8 (structured outputs via messages.parse + Zod).
+  - O pipeline roda em 4 ondas para caber no limite de tempo do serverless:
+    (classificar + viralização + trends em paralelo) -> gaps -> ideias/roteiros -> relatório.
+  - LIMITE: a rota /api/analise é síncrona (maxDuration=60s). Projetos com MUITOS
+    concorrentes/posts podem estourar 60s no Vercel Free. Solução definitiva vem na
+    Fase 3 (fila/agendamento Inngest), que roda a análise em background.
+  - Falta apenas definir ANTHROPIC_API_KEY nas env vars do Vercel para funcionar em produção.
 
 ------------------------------------------------------------------------------------------
  COMO A IA É USADA AQUI (IDEIA GERAL)

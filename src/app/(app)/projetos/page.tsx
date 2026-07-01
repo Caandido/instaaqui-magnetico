@@ -1,8 +1,10 @@
 import { redirect } from "next/navigation";
 import { getCurrentUserWithOrgs, getActiveOrg } from "@/lib/org";
 import { db } from "@/lib/db";
+import Link from "next/link";
 import { createProject } from "@/app/actions/projects";
 import { CollectButton } from "@/components/collect-button";
+import { AnalyzeButton } from "@/components/analyze-button";
 
 export default async function ProjetosPage() {
   const data = await getCurrentUserWithOrgs();
@@ -18,6 +20,7 @@ export default async function ProjetosPage() {
         orderBy: { handle: "asc" },
         include: { _count: { select: { contents: true } } },
       },
+      _count: { select: { ideas: true, reports: true } },
     },
   });
 
@@ -99,7 +102,18 @@ export default async function ProjetosPage() {
                       coletado(s)
                     </p>
                   </div>
-                  <CollectButton projectId={p.id} />
+                  <div className="flex flex-col items-end gap-2">
+                    <CollectButton projectId={p.id} />
+                    <AnalyzeButton projectId={p.id} />
+                    {p._count.ideas > 0 || p._count.reports > 0 ? (
+                      <Link
+                        href={`/projetos/${p.id}`}
+                        className="text-sm font-medium text-pink-700 hover:underline"
+                      >
+                        Ver resultados da análise →
+                      </Link>
+                    ) : null}
+                  </div>
                 </div>
 
                 {p.competitors.length > 0 && (
