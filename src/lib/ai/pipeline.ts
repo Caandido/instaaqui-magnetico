@@ -9,6 +9,7 @@ import { huntTrends } from "./trend-hunter";
 import { findGaps } from "./estrategista";
 import { generateCopy } from "./copywriter";
 import { generateReport } from "./report-generator";
+import { detectAlerts } from "@/lib/alerts";
 
 export type PipelineSummary = {
   runId: string;
@@ -20,6 +21,7 @@ export type PipelineSummary = {
   gaps: number;
   trends: number;
   report: boolean;
+  alerts: number;
 };
 
 export async function runAnalysisForProject(
@@ -185,6 +187,9 @@ export async function runAnalysisForProject(
       },
     });
 
+    // Alertas estratégicos (Fase 3) — depois que trends/contents estão salvos.
+    const alertsCount = await detectAlerts(projectId);
+
     await db.analysisRun.update({
       where: { id: run.id },
       data: {
@@ -205,6 +210,7 @@ export async function runAnalysisForProject(
       gaps: gaps.gaps.length,
       trends: trends.trends.length,
       report: true,
+      alerts: alertsCount,
     };
   } catch (e) {
     await db.analysisRun.update({

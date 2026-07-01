@@ -10,11 +10,26 @@ acontece (alertas). Ao final, o produto funciona "no piloto automático" e gera 
 ------------------------------------------------------------------------------------------
  O QUE ESTA FASE ENTREGA
 ------------------------------------------------------------------------------------------
-  [ ] Cobrança por assinatura (Stripe) com planos e limites
-  [ ] Limites por plano (ex.: quantos concorrentes monitorar)
-  [ ] Agendamento automático (coletas + relatórios diário/semanal)
-  [ ] Sistema de Alertas (novo viral, novo formato, nova oferta, bio mudou, tendência)
-  [ ] Tabela Alert e geração de Report agendada
+  [X] Cobrança por assinatura (Stripe) com planos e limites
+  [X] Limites por plano (ex.: quantos concorrentes monitorar)
+  [X] Agendamento automático (relatórios diário/semanal via Inngest)
+  [X] Sistema de Alertas (NOVO_VIRAL e TENDENCIA implementados)
+  [X] Tabela Alert + tela de Planos + integração de alertas na análise
+
+  Observações da implementação:
+  - Cobrança: src/lib/stripe.ts + /api/stripe/webhook + ação startCheckout + tela /planos.
+    Planos FREE/PRO/AGENCY com limites em src/lib/plan.ts (aplicados ao criar projeto/concorrentes).
+  - Agendamento: src/inngest/ (client + functions) e /api/inngest. Crons diário (9h UTC) e
+    semanal (segunda 9h UTC) fazem fan-out de um evento "analysis/run" por projeto elegível
+    (plano PRO/AGENCY). Cada evento roda o pipeline da Fase 2 (que já gera os alertas).
+  - Alertas: src/lib/alerts.ts detecta NOVO_VIRAL (post >2x a média do concorrente) e
+    TENDENCIA (a partir do Trend Hunter). NOVA_OFERTA/MUDANCA_BIO/NOVO_FORMATO precisam de
+    histórico/snapshots da coleta — ficam para evolução futura.
+  - Faltam apenas as configs externas (você cria as contas e cola as chaves no Vercel):
+    STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, STRIPE_PRICE_PRO, STRIPE_PRICE_AGENCY,
+    INNGEST_EVENT_KEY, INNGEST_SIGNING_KEY (e conectar o app no painel da Inngest).
+  - LIMITE conhecido: a análise agendada roda em um step único; projetos muito grandes podem
+    chegar perto de 60s no Vercel Free. Endurecimento: quebrar cada agente em seu próprio step.
 
 ------------------------------------------------------------------------------------------
  PRÉ-REQUISITOS DESTA FASE

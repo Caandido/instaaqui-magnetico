@@ -56,7 +56,7 @@ export default async function ResultadosPage({
   }
   if (!project) notFound();
 
-  const [ideas, scripts, gaps, trends, insights, report, lastRun] =
+  const [ideas, scripts, gaps, trends, insights, report, lastRun, alerts] =
     await Promise.all([
       db.idea.findMany({ where: { projectId: id }, orderBy: { createdAt: "asc" } }),
       db.script.findMany({ where: { projectId: id }, orderBy: { createdAt: "asc" } }),
@@ -68,11 +68,17 @@ export default async function ResultadosPage({
         where: { projectId: id },
         orderBy: { startedAt: "desc" },
       }),
+      db.alert.findMany({ where: { projectId: id }, orderBy: { createdAt: "desc" } }),
     ]);
 
   const rep = report?.payload as unknown as ReportResult | undefined;
   const hasAnything =
-    ideas.length || scripts.length || gaps.length || trends.length || report;
+    ideas.length ||
+    scripts.length ||
+    gaps.length ||
+    trends.length ||
+    alerts.length ||
+    report;
 
   return (
     <div className="space-y-8">
@@ -99,6 +105,32 @@ export default async function ResultadosPage({
         </p>
       ) : (
         <div className="space-y-10">
+          {/* Alertas estratégicos (Fase 3) */}
+          {alerts.length > 0 && (
+            <Section title="Alertas estratégicos" count={alerts.length}>
+              <div className="space-y-2">
+                {alerts.map((a) => (
+                  <div
+                    key={a.id}
+                    className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm"
+                  >
+                    <p className="font-semibold text-red-900">
+                      🚨 {a.type.replace(/_/g, " ")}
+                      {a.competitor ? ` · @${a.competitor}` : ""}
+                    </p>
+                    <p className="text-red-800">{a.description}</p>
+                    <p className="mt-1 text-red-700">
+                      <span className="font-medium">Impacto:</span> {a.impact}
+                    </p>
+                    <p className="text-red-700">
+                      <span className="font-medium">Ação:</span> {a.action}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </Section>
+          )}
+
           {/* Resumo executivo + plano de 7 dias */}
           {rep && (
             <Section title="Resumo estratégico">

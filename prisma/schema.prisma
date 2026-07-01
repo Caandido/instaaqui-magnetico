@@ -133,6 +133,7 @@ model Project {
   gaps         Gap[]
   trends       Trend[]
   reports      Report[]
+  alerts       Alert[]
 
   @@index([organizationId])
 }
@@ -343,6 +344,34 @@ model Report {
   summary   String // resumo executivo (texto)
   payload   Json // estrutura completa dos 9 entregáveis + plano de 7 dias
   createdAt DateTime   @default(now())
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+}
+
+// ----------------------------------------------------------------------------
+// Fase 3 — SaaS: alertas estratégicos (cobrança usa a Subscription já existente).
+// ----------------------------------------------------------------------------
+
+enum AlertType {
+  NOVO_VIRAL
+  NOVO_FORMATO
+  NOVA_OFERTA
+  MUDANCA_BIO
+  TENDENCIA
+}
+
+model Alert {
+  id          String    @id @default(cuid())
+  type        AlertType
+  competitor  String? // handle do concorrente (quando aplicável)
+  description String
+  impact      String
+  action      String // ação recomendada
+  read        Boolean   @default(false)
+  createdAt   DateTime  @default(now())
 
   projectId String
   project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)

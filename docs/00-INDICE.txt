@@ -22,21 +22,19 @@ feature futura do projeto. Tudo escrito em português, para qualquer pessoa ente
 ------------------------------------------------------------------------------------------
  STATUS DAS FASES
 ------------------------------------------------------------------------------------------
-  [X] FASE 0 — Fundação  (CONCLUÍDA e no ar: https://instaaqui-magnetico.vercel.app)
-  [~] FASE 1 — Coleta (Apify)  (código PRONTO e validado: `next build` local passa com as rotas
-      /projetos, /api/coleta e /api/coleta/webhook. Pendências para colocar no ar:
-        1) DEPLOY TRAVADO NA VERCEL: todos os deploys de produção recentes ficam em status
-           UNKNOWN e não geram log de build (o único "Ready" é o da Fase 0). Isso é problema
-           de INFRA da Vercel, não do código. Resolver pelo PAINEL da Vercel:
-             - Abrir o deploy mais recente em vercel.com -> Deployments e ler o Build Log real.
-             - Conferir limites de uso/plano (Free) e se o build está pausado.
-             - Atualizar o Vercel CLI (npm i -g vercel@latest) — o local esta em v52 (defasado).
-             - Se persistir, re-linkar a integracao GitHub->Vercel ou disparar "Redeploy" pela UI.
-        2) Definir APIFY_TOKEN nas env vars da Vercel e testar a coleta ponta a ponta.)
-  [~] FASE 2 — Motor de IA  (código PRONTO e validado: `next build` passa com os 6 agentes,
-      o pipeline, /api/analise e a tela /projetos/[id]. Falta definir ANTHROPIC_API_KEY no
-      Vercel e destravar o deploy — ver pendências da Fase 1 acima.)
-  [ ] FASE 3 — Recursos de SaaS
+  NOTA: o deploy da Vercel FOI DESTRAVADO em 2026-07-01 tornando o repositório PÚBLICO
+  (o plano Free/Hobby não deixa deployar repo PRIVADO cujo autor do commit não seja o dono
+  da conta Vercel — a mensagem só aparece no painel do deploy). Alternativas eram: alinhar o
+  e-mail do autor do commit ao da conta Vercel, ou upgrade para Pro.
+
+  [X] FASE 0 — Fundação  (no ar)
+  [X] FASE 1 — Coleta (Apify)  (NO AR — /projetos e /api/coleta ativos; APIFY_TOKEN configurado)
+  [X] FASE 2 — Motor de IA  (NO AR — 6 agentes, /api/analise e /projetos/[id]; ANTHROPIC_API_KEY configurado)
+  [~] FASE 3 — Recursos de SaaS  (código PRONTO e validado: `next build` passa com Stripe
+      (/api/stripe/webhook + tela /planos), limites por plano, agendamento Inngest
+      (/api/inngest, crons diário/semanal) e alertas. Falta apenas configurar as contas
+      externas e colar as chaves no Vercel: STRIPE_* (chaves + STRIPE_PRICE_PRO/AGENCY) e
+      INNGEST_EVENT_KEY/INNGEST_SIGNING_KEY, além de conectar o app no painel da Inngest.)
   [ ] FASE 4 — Frontend / Dashboards
   (Marque com X conforme cada fase for concluída.)
 
