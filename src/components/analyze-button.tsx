@@ -24,9 +24,8 @@ export function AnalyzeButton({ projectId }: { projectId: string }) {
         setBusy(false);
         return;
       }
-      setStatus("Análise concluída! Abrindo resultados…");
+      setStatus("Análise concluída! Atualizando…");
       setBusy(false);
-      router.push(`/projetos/${projectId}`);
       router.refresh();
     } catch (e) {
       setStatus(String(e));

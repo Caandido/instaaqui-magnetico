@@ -26,8 +26,8 @@ export default async function AppLayout({
               <Link href="/dashboard" className="hover:text-gray-900">
                 Dashboard
               </Link>
-              <Link href="/projetos" className="hover:text-gray-900">
-                Projetos
+              <Link href="/empresa" className="hover:text-gray-900">
+                Empresa
               </Link>
               <Link href="/planos" className="hover:text-gray-900">
                 Planos

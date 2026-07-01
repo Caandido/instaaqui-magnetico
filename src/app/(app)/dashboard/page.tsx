@@ -23,19 +23,22 @@ export default async function DashboardPage() {
           <p className="text-xs text-gray-400">Seu papel: {activeOrg?.role ?? "—"}</p>
         </div>
         <a
-          href="/projetos"
+          href="/empresa"
           className="rounded-lg border border-gray-200 bg-white p-5 transition hover:border-pink-300"
         >
-          <h2 className="text-sm font-medium text-gray-500">Coleta (Fase 1)</h2>
+          <h2 className="text-sm font-medium text-gray-500">Sua empresa</h2>
           <p className="mt-1 text-gray-700">
-            Criar projetos, adicionar concorrentes e coletar conteúdos →
+            Concorrentes, coletas, análises, alertas e ideias — tudo em um só lugar →
           </p>
         </a>
       </div>
 
       <div className="rounded-lg border border-dashed border-gray-300 bg-white p-5 text-sm text-gray-500">
-        As telas de tendências, ideias, roteiros, gaps, alertas e relatórios
-        chegam nas próximas fases.
+        Toda a inteligência de conteúdo da empresa fica reunida em{" "}
+        <a href="/empresa" className="text-pink-700 hover:underline">
+          Empresa
+        </a>
+        .
       </div>
     </div>
   );
