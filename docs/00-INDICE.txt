@@ -23,7 +23,16 @@ feature futura do projeto. Tudo escrito em português, para qualquer pessoa ente
  STATUS DAS FASES
 ------------------------------------------------------------------------------------------
   [X] FASE 0 — Fundação  (CONCLUÍDA e no ar: https://instaaqui-magnetico.vercel.app)
-  [~] FASE 1 — Coleta (Apify)  (código pronto; falta definir APIFY_TOKEN no Vercel e testar a coleta)
+  [~] FASE 1 — Coleta (Apify)  (código PRONTO e validado: `next build` local passa com as rotas
+      /projetos, /api/coleta e /api/coleta/webhook. Pendências para colocar no ar:
+        1) DEPLOY TRAVADO NA VERCEL: todos os deploys de produção recentes ficam em status
+           UNKNOWN e não geram log de build (o único "Ready" é o da Fase 0). Isso é problema
+           de INFRA da Vercel, não do código. Resolver pelo PAINEL da Vercel:
+             - Abrir o deploy mais recente em vercel.com -> Deployments e ler o Build Log real.
+             - Conferir limites de uso/plano (Free) e se o build está pausado.
+             - Atualizar o Vercel CLI (npm i -g vercel@latest) — o local esta em v52 (defasado).
+             - Se persistir, re-linkar a integracao GitHub->Vercel ou disparar "Redeploy" pela UI.
+        2) Definir APIFY_TOKEN nas env vars da Vercel e testar a coleta ponta a ponta.)
   [ ] FASE 2 — Motor de IA
   [ ] FASE 3 — Recursos de SaaS
   [ ] FASE 4 — Frontend / Dashboards
