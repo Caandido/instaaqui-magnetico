@@ -42,7 +42,7 @@ export default async function EmpresaPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-semibold">Sua empresa</h1>
-        <p className="text-gray-600">
+        <p className="text-neutral-300">
           Tudo em um só lugar: seus concorrentes, coletas, análises, alertas e
           ideias de conteúdo.
         </p>
@@ -51,10 +51,10 @@ export default async function EmpresaPage() {
       {/* Dados da empresa */}
       <form
         action={saveCompanyInfo}
-        className="grid gap-4 rounded-lg border border-gray-200 bg-white p-5 sm:grid-cols-2"
+        className="grid gap-4 rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-5 sm:grid-cols-2"
       >
         <label className="block">
-          <span className="mb-1 block text-sm font-medium text-gray-700">
+          <span className="mb-1 block text-sm font-medium text-neutral-200">
             Nome da empresa
           </span>
           <input
@@ -65,7 +65,7 @@ export default async function EmpresaPage() {
           />
         </label>
         <label className="block">
-          <span className="mb-1 block text-sm font-medium text-gray-700">Nicho</span>
+          <span className="mb-1 block text-sm font-medium text-neutral-200">Nicho</span>
           <input
             name="niche"
             defaultValue={ws.project.niche ?? ""}
@@ -74,7 +74,7 @@ export default async function EmpresaPage() {
           />
         </label>
         <label className="block">
-          <span className="mb-1 block text-sm font-medium text-gray-700">
+          <span className="mb-1 block text-sm font-medium text-neutral-200">
             Seu perfil (@)
           </span>
           <input
@@ -85,7 +85,7 @@ export default async function EmpresaPage() {
           />
         </label>
         <label className="block">
-          <span className="mb-1 block text-sm font-medium text-gray-700">Objetivo</span>
+          <span className="mb-1 block text-sm font-medium text-neutral-200">Objetivo</span>
           <input
             name="objective"
             defaultValue={ws.project.objective ?? ""}
@@ -101,11 +101,11 @@ export default async function EmpresaPage() {
       </form>
 
       {/* Concorrentes */}
-      <div className="rounded-lg border border-gray-200 bg-white p-5">
+      <div className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-lg font-semibold">
             Concorrentes monitorados{" "}
-            <span className="text-sm font-normal text-gray-400">
+            <span className="text-sm font-normal text-neutral-500">
               ({competitors.length}/{limits.maxCompetitorsPerProject}) ·{" "}
               {totalContents} conteúdo(s)
             </span>
@@ -117,14 +117,14 @@ export default async function EmpresaPage() {
         </div>
 
         {competitors.length > 0 && (
-          <ul className="mt-4 divide-y divide-gray-100 border-t border-gray-100">
+          <ul className="mt-4 divide-y divide-white/10 border-t border-white/10">
             {competitors.map((c) => (
               <li
                 key={c.id}
                 className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm"
               >
                 <span className="font-medium">@{c.handle}</span>
-                <span className="flex items-center gap-3 text-gray-500">
+                <span className="flex items-center gap-3 text-neutral-400">
                   {c.followers != null
                     ? `${c.followers.toLocaleString("pt-BR")} seguidores · `
                     : ""}
@@ -134,7 +134,7 @@ export default async function EmpresaPage() {
                     <input type="hidden" name="id" value={c.id} />
                     <button
                       type="submit"
-                      className="text-red-600 hover:underline"
+                      className="text-red-400 hover:underline"
                       title="Remover"
                     >
                       remover
@@ -149,7 +149,7 @@ export default async function EmpresaPage() {
         {/* Adicionar concorrentes */}
         <form action={addCompetitors} className="mt-4 space-y-2">
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-gray-700">
+            <span className="mb-1 block text-sm font-medium text-neutral-200">
               Adicionar concorrentes (um por linha ou separados por vírgula)
             </span>
             <textarea
@@ -164,9 +164,9 @@ export default async function EmpresaPage() {
             Adicionar
           </button>
           {atLimit && (
-            <span className="ml-3 text-sm text-gray-500">
+            <span className="ml-3 text-sm text-neutral-400">
               Limite do plano atingido —{" "}
-              <a href="/planos" className="text-brand-700 hover:underline">
+              <a href="/planos" className="text-brand-400 hover:underline">
                 fazer upgrade
               </a>
             </span>

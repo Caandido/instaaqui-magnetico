@@ -54,7 +54,7 @@ export function CollectButton({ projectId }: { projectId: string }) {
       <button onClick={start} disabled={busy} className="btn-primary">
         {busy ? "Coletando…" : "Coletar agora"}
       </button>
-      {status && <span className="text-sm text-gray-500">{status}</span>}
+      {status && <span className="text-sm text-neutral-400">{status}</span>}
     </div>
   );
 }

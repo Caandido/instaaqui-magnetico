@@ -45,20 +45,20 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-sm rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+    <div className="flex min-h-screen items-center justify-center bg-transparent px-4">
+      <div className="w-full max-w-sm rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm p-6 shadow-sm">
         <div className="mb-1 flex justify-center">
           <BrandLogo />
         </div>
-        <p className="mb-6 text-center text-sm text-gray-500">Criar conta</p>
+        <p className="mb-6 text-center text-sm text-neutral-400">Criar conta</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-gray-700">Seu nome</span>
+            <span className="mb-1 block text-sm font-medium text-neutral-200">Seu nome</span>
             <input value={name} onChange={(e) => setName(e.target.value)} className="input" />
           </label>
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-gray-700">
+            <span className="mb-1 block text-sm font-medium text-neutral-200">
               Nome do workspace
             </span>
             <input
@@ -69,7 +69,7 @@ export default function SignupPage() {
             />
           </label>
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-gray-700">E-mail</span>
+            <span className="mb-1 block text-sm font-medium text-neutral-200">E-mail</span>
             <input
               type="email"
               required
@@ -79,7 +79,7 @@ export default function SignupPage() {
             />
           </label>
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-gray-700">
+            <span className="mb-1 block text-sm font-medium text-neutral-200">
               Senha (mín. 8 caracteres)
             </span>
             <input
@@ -92,16 +92,16 @@ export default function SignupPage() {
             />
           </label>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-red-400">{error}</p>}
 
           <button type="submit" disabled={loading} className="btn-primary w-full">
             {loading ? "Criando..." : "Criar conta"}
           </button>
         </form>
 
-        <p className="mt-4 text-center text-sm text-gray-600">
+        <p className="mt-4 text-center text-sm text-neutral-300">
           Já tem conta?{" "}
-          <Link href="/login" className="text-brand-600 hover:underline">
+          <Link href="/login" className="text-brand-400 hover:underline">
             Entrar
           </Link>
         </p>

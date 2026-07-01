@@ -16,21 +16,21 @@ export default async function AppLayout({
   const activeOrg = await getActiveOrg(data.orgs);
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900">
-      <header className="border-b border-gray-200 bg-white">
+    <div className="min-h-screen bg-transparent text-neutral-100">
+      <header className="border-b border-white/10 bg-white/5 backdrop-blur-sm">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
           <div className="flex items-center gap-6">
             <Link href="/dashboard">
               <BrandLogo />
             </Link>
-            <nav className="flex items-center gap-4 text-sm text-gray-600">
-              <Link href="/dashboard" className="hover:text-gray-900">
+            <nav className="flex items-center gap-4 text-sm text-neutral-300">
+              <Link href="/dashboard" className="hover:text-neutral-100">
                 Dashboard
               </Link>
-              <Link href="/empresa" className="hover:text-gray-900">
+              <Link href="/empresa" className="hover:text-neutral-100">
                 Empresa
               </Link>
-              <Link href="/planos" className="hover:text-gray-900">
+              <Link href="/planos" className="hover:text-neutral-100">
                 Planos
               </Link>
             </nav>
@@ -40,7 +40,7 @@ export default async function AppLayout({
             {activeOrg && (
               <WorkspaceSwitcher orgs={data.orgs} activeId={activeOrg.id} />
             )}
-            <span className="hidden text-sm text-gray-500 sm:inline">
+            <span className="hidden text-sm text-neutral-400 sm:inline">
               {data.user.email}
             </span>
             <form
@@ -51,7 +51,7 @@ export default async function AppLayout({
             >
               <button
                 type="submit"
-                className="rounded-md border border-gray-300 px-3 py-1 text-sm hover:bg-gray-100"
+                className="rounded-md border border-white/15 px-3 py-1 text-sm hover:bg-neutral-800"
               >
                 Sair
               </button>
@@ -60,7 +60,7 @@ export default async function AppLayout({
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 py-8">{children}</main>
+      <main className="animate-fade-up mx-auto max-w-6xl px-4 py-8">{children}</main>
     </div>
   );
 }

@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #0b160b;
+  --background: #060807;
+  --foreground: #e9ece9;
 }
 
 /* Identidade da marca "Aqui" — verde vivo (logo é um pin de localização verde). */
@@ -33,20 +33,100 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Fundo "aurora" animado (verde neon difuso sobre o preto). */
+.app-aurora {
+  position: fixed;
+  inset: 0;
+  z-index: -10;
+  pointer-events: none;
+  background:
+    radial-gradient(38% 32% at 12% 8%, rgba(0, 224, 0, 0.18), transparent 70%),
+    radial-gradient(34% 30% at 88% 18%, rgba(0, 224, 0, 0.1), transparent 70%),
+    radial-gradient(52% 42% at 60% 108%, rgba(0, 180, 0, 0.14), transparent 70%);
+  animation: auroraShift 18s ease-in-out infinite alternate;
+}
+.app-grid {
+  position: fixed;
+  inset: 0;
+  z-index: -9;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.5) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.5) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(circle at 50% 0%, black, transparent 75%);
+}
+
+@keyframes auroraShift {
+  0% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.8; }
+  50% { transform: translate3d(0, -3%, 0) scale(1.08); opacity: 1; }
+  100% { transform: translate3d(0, 2%, 0) scale(1.04); opacity: 0.85; }
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes glowPulse {
+  0%, 100% { filter: drop-shadow(0 0 3px rgba(0, 224, 0, 0.55)); }
+  50% { filter: drop-shadow(0 0 12px rgba(0, 224, 0, 0.95)); }
+}
+@keyframes floaty {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+@keyframes shimmer {
+  to { background-position: 200% center; }
+}
+
 @layer components {
   .input {
-    @apply w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm
-      outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-200;
+    @apply w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm
+      text-neutral-100 placeholder:text-neutral-500 outline-none transition
+      focus:border-brand-500 focus:ring-2 focus:ring-brand-500/40;
   }
 
-  /* Botão principal: verde vivo da marca com texto escuro (alto contraste). */
+  /* Botão principal: verde vivo da marca com texto escuro + glow dinâmico. */
   .btn-primary {
     @apply rounded-md bg-brand-500 px-4 py-2 text-sm font-semibold text-gray-950
-      hover:bg-brand-400 disabled:cursor-not-allowed disabled:opacity-60;
+      transition duration-200 hover:bg-brand-400
+      disabled:cursor-not-allowed disabled:opacity-60;
+    box-shadow: 0 0 0 1px rgba(0, 224, 0, 0.25), 0 10px 26px -10px rgba(0, 224, 0, 0.5);
+  }
+  .btn-primary:not(:disabled):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 0 26px -2px rgba(0, 224, 0, 0.6);
   }
 
   .btn-secondary {
-    @apply rounded-md border border-brand-600 bg-white px-4 py-2 text-sm font-medium
-      text-brand-700 hover:bg-brand-50 disabled:cursor-not-allowed disabled:opacity-60;
+    @apply rounded-md border border-brand-500/40 bg-brand-500/5 px-4 py-2 text-sm
+      font-medium text-brand-300 transition duration-200 hover:bg-brand-500/15
+      hover:border-brand-400 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  /* Painel/cartão padrão do tema escuro. */
+  .card {
+    @apply rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm transition duration-200;
+  }
+  .card-hover:hover {
+    border-color: rgba(0, 224, 0, 0.35);
+    box-shadow: 0 0 30px -14px rgba(0, 224, 0, 0.55);
+    transform: translateY(-2px);
+  }
+}
+
+@layer utilities {
+  .animate-fade-up { animation: fadeUp 0.5s ease both; }
+  .animate-glow { animation: glowPulse 2.6s ease-in-out infinite; }
+  .animate-floaty { animation: floaty 4s ease-in-out infinite; }
+  .brand-glow { filter: drop-shadow(0 0 8px rgba(0, 224, 0, 0.8)); }
+  /* Texto com gradiente animado (verde → claro). */
+  .text-shimmer {
+    background: linear-gradient(90deg, #10c410, #7dffb0, #10c410);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: shimmer 4s linear infinite;
   }
 }

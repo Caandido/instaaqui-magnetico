@@ -31,7 +31,11 @@ export default function RootLayout({
       lang="pt-BR"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <div className="app-aurora" aria-hidden="true" />
+        <div className="app-grid" aria-hidden="true" />
+        {children}
+      </body>
     </html>
   );
 }

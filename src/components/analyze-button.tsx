@@ -38,7 +38,7 @@ export function AnalyzeButton({ projectId }: { projectId: string }) {
       <button onClick={analyze} disabled={busy} className="btn-secondary">
         {busy ? "Analisando…" : "Analisar com IA"}
       </button>
-      {status && <span className="text-sm text-gray-500">{status}</span>}
+      {status && <span className="text-sm text-neutral-400">{status}</span>}
     </div>
   );
 }

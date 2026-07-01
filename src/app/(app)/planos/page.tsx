@@ -29,23 +29,23 @@ export default async function PlanosPage({
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-semibold">Planos</h1>
-        <p className="text-gray-600">
+        <p className="text-neutral-300">
           Seu plano atual: <span className="font-medium">{currentPlan}</span>
         </p>
       </div>
 
       {sp.sucesso && (
-        <p className="rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-800">
+        <p className="rounded-lg border border-brand-500/30 bg-brand-500/10 p-4 text-sm text-brand-300">
           Assinatura confirmada! Pode levar alguns segundos para o plano atualizar.
         </p>
       )}
       {sp.cancelado && (
-        <p className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+        <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-300">
           Checkout cancelado. Nenhuma cobrança foi feita.
         </p>
       )}
       {!canCheckout && (
-        <p className="rounded-lg border border-dashed border-gray-300 bg-white p-4 text-sm text-gray-500">
+        <p className="rounded-lg border border-dashed border-white/15 bg-white/5 backdrop-blur-sm p-4 text-sm text-neutral-400">
           Cobrança em modo de configuração: defina as chaves do Stripe
           (STRIPE_SECRET_KEY e preços) no Vercel para habilitar os upgrades.
         </p>
@@ -58,13 +58,13 @@ export default async function PlanosPage({
           return (
             <div
               key={plan}
-              className={`rounded-lg border bg-white p-5 ${
-                highlight ? "border-brand-300 ring-1 ring-brand-100" : "border-gray-200"
+              className={`card card-hover p-5 ${
+                highlight ? "border-brand-500/40 ring-1 ring-brand-500/20" : ""
               }`}
             >
               <h2 className="text-lg font-semibold">{name}</h2>
               <p className="mt-1 text-2xl font-bold">{price}</p>
-              <ul className="mt-4 space-y-1 text-sm text-gray-600">
+              <ul className="mt-4 space-y-1 text-sm text-neutral-300">
                 <li>{limits.maxProjects} projeto(s)</li>
                 <li>{limits.maxCompetitorsPerProject} concorrentes por projeto</li>
                 <li>
@@ -76,11 +76,11 @@ export default async function PlanosPage({
 
               <div className="mt-5">
                 {isCurrent ? (
-                  <span className="inline-block rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-500">
+                  <span className="inline-block rounded-md bg-neutral-800 px-4 py-2 text-sm font-medium text-neutral-400">
                     Plano atual
                   </span>
                 ) : plan === "FREE" ? (
-                  <span className="text-sm text-gray-400">—</span>
+                  <span className="text-sm text-neutral-500">—</span>
                 ) : (
                   <form action={startCheckout}>
                     <input type="hidden" name="plan" value={plan} />
