@@ -59,7 +59,7 @@ export default async function PlanosPage({
             <div
               key={plan}
               className={`rounded-lg border bg-white p-5 ${
-                highlight ? "border-pink-300 ring-1 ring-pink-100" : "border-gray-200"
+                highlight ? "border-brand-300 ring-1 ring-brand-100" : "border-gray-200"
               }`}
             >
               <h2 className="text-lg font-semibold">{name}</h2>

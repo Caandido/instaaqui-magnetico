@@ -3,6 +3,7 @@ import Link from "next/link";
 import { signOut } from "@/lib/auth";
 import { getCurrentUserWithOrgs, getActiveOrg } from "@/lib/org";
 import { WorkspaceSwitcher } from "@/components/workspace-switcher";
+import { BrandLogo } from "@/components/brand-logo";
 
 export default async function AppLayout({
   children,
@@ -19,8 +20,8 @@ export default async function AppLayout({
       <header className="border-b border-gray-200 bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
           <div className="flex items-center gap-6">
-            <Link href="/dashboard" className="font-semibold tracking-tight">
-              InstaAqui <span className="text-pink-600">Magnético</span>
+            <Link href="/dashboard">
+              <BrandLogo />
             </Link>
             <nav className="flex items-center gap-4 text-sm text-gray-600">
               <Link href="/dashboard" className="hover:text-gray-900">

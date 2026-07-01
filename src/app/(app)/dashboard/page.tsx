@@ -24,7 +24,7 @@ export default async function DashboardPage() {
         </div>
         <a
           href="/empresa"
-          className="rounded-lg border border-gray-200 bg-white p-5 transition hover:border-pink-300"
+          className="rounded-lg border border-gray-200 bg-white p-5 transition hover:border-brand-300"
         >
           <h2 className="text-sm font-medium text-gray-500">Sua empresa</h2>
           <p className="mt-1 text-gray-700">
@@ -35,7 +35,7 @@ export default async function DashboardPage() {
 
       <div className="rounded-lg border border-dashed border-gray-300 bg-white p-5 text-sm text-gray-500">
         Toda a inteligência de conteúdo da empresa fica reunida em{" "}
-        <a href="/empresa" className="text-pink-700 hover:underline">
+        <a href="/empresa" className="text-brand-700 hover:underline">
           Empresa
         </a>
         .

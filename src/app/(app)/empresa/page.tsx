@@ -166,7 +166,7 @@ export default async function EmpresaPage() {
           {atLimit && (
             <span className="ml-3 text-sm text-gray-500">
               Limite do plano atingido —{" "}
-              <a href="/planos" className="text-pink-700 hover:underline">
+              <a href="/planos" className="text-brand-700 hover:underline">
                 fazer upgrade
               </a>
             </span>

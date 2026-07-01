@@ -187,7 +187,7 @@ export function AnalysisResults({
           <div className="grid gap-3 sm:grid-cols-2">
             {trends.map((t) => (
               <div key={t.id} className="rounded-lg border border-gray-200 bg-white p-4">
-                <p className="text-xs uppercase tracking-wide text-pink-600">
+                <p className="text-xs uppercase tracking-wide text-brand-600">
                   {t.kind}
                 </p>
                 <p className="font-medium">{t.title}</p>

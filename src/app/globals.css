@@ -2,7 +2,22 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0b160b;
+}
+
+/* Identidade da marca "Aqui" — verde vivo (logo é um pin de localização verde). */
+@theme {
+  --color-brand-50: #eafdea;
+  --color-brand-100: #ccf8cc;
+  --color-brand-200: #99f099;
+  --color-brand-300: #5fe45f;
+  --color-brand-400: #2fd42f;
+  --color-brand-500: #10c410;
+  --color-brand-600: #0aa30a;
+  --color-brand-700: #0a7d0a;
+  --color-brand-800: #0a5f0a;
+  --color-brand-900: #0b4a0b;
+  --color-brand-neon: #00e000;
 }
 
 @theme inline {
@@ -21,16 +36,17 @@ body {
 @layer components {
   .input {
     @apply w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm
-      outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-200;
+      outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-200;
   }
 
+  /* Botão principal: verde vivo da marca com texto escuro (alto contraste). */
   .btn-primary {
-    @apply rounded-md bg-pink-600 px-4 py-2 text-sm font-medium text-white
-      hover:bg-pink-700 disabled:cursor-not-allowed disabled:opacity-60;
+    @apply rounded-md bg-brand-500 px-4 py-2 text-sm font-semibold text-gray-950
+      hover:bg-brand-400 disabled:cursor-not-allowed disabled:opacity-60;
   }
 
   .btn-secondary {
-    @apply rounded-md border border-pink-300 bg-white px-4 py-2 text-sm font-medium
-      text-pink-700 hover:bg-pink-50 disabled:cursor-not-allowed disabled:opacity-60;
+    @apply rounded-md border border-brand-600 bg-white px-4 py-2 text-sm font-medium
+      text-brand-700 hover:bg-brand-50 disabled:cursor-not-allowed disabled:opacity-60;
   }
 }

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
+import { BrandLogo } from "@/components/brand-logo";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -58,7 +59,7 @@ export default function LoginPage() {
       </form>
       <p className="mt-4 text-center text-sm text-gray-600">
         Não tem conta?{" "}
-        <Link href="/signup" className="text-pink-600 hover:underline">
+        <Link href="/signup" className="text-brand-600 hover:underline">
           Cadastre-se
         </Link>
       </p>
@@ -70,9 +71,9 @@ function AuthShell({ title, children }: { title: string; children: React.ReactNo
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-sm rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <h1 className="mb-1 text-center text-xl font-semibold">
-          InstaAqui <span className="text-pink-600">Magnético</span>
-        </h1>
+        <div className="mb-1 flex justify-center">
+          <BrandLogo />
+        </div>
         <p className="mb-6 text-center text-sm text-gray-500">{title}</p>
         {children}
       </div>
