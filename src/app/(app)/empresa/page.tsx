@@ -1,6 +1,5 @@
-import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
-import { getWorkspace } from "@/lib/workspace";
+import { requireWorkspace } from "@/lib/workspace";
 import { getOrgLimits } from "@/lib/plan";
 import {
   saveCompanyInfo,
@@ -9,31 +8,38 @@ import {
 } from "@/app/actions/company";
 import { CollectButton } from "@/components/collect-button";
 import { AnalyzeButton } from "@/components/analyze-button";
-import { AnalysisResults } from "@/components/analysis-results";
+import { StatCard } from "@/components/ui";
 
 export default async function EmpresaPage() {
-  const ws = await getWorkspace();
-  if (!ws) redirect("/login");
-
+  const ws = await requireWorkspace();
   const projectId = ws.project.id;
   const limits = await getOrgLimits(ws.org.id);
 
-  const [competitors, ideas, scripts, gaps, trends, insights, report, lastRun, alerts] =
-    await Promise.all([
-      db.competitor.findMany({
-        where: { projectId },
-        orderBy: { handle: "asc" },
-        include: { _count: { select: { contents: true } } },
-      }),
-      db.idea.findMany({ where: { projectId }, orderBy: { createdAt: "asc" } }),
-      db.script.findMany({ where: { projectId }, orderBy: { createdAt: "asc" } }),
-      db.gap.findMany({ where: { projectId }, orderBy: { createdAt: "asc" } }),
-      db.trend.findMany({ where: { projectId }, orderBy: { createdAt: "asc" } }),
-      db.insight.findMany({ where: { projectId }, orderBy: { createdAt: "asc" } }),
-      db.report.findFirst({ where: { projectId }, orderBy: { createdAt: "desc" } }),
-      db.analysisRun.findFirst({ where: { projectId }, orderBy: { startedAt: "desc" } }),
-      db.alert.findMany({ where: { projectId }, orderBy: { createdAt: "desc" } }),
-    ]);
+  const [
+    competitors,
+    ideas,
+    scripts,
+    gaps,
+    trends,
+    insights,
+    alerts,
+    contents,
+    lastRun,
+  ] = await Promise.all([
+    db.competitor.findMany({
+      where: { projectId },
+      orderBy: { handle: "asc" },
+      include: { _count: { select: { contents: true } } },
+    }),
+    db.idea.count({ where: { projectId } }),
+    db.script.count({ where: { projectId } }),
+    db.gap.count({ where: { projectId } }),
+    db.trend.count({ where: { projectId } }),
+    db.insight.count({ where: { projectId } }),
+    db.alert.count({ where: { projectId } }),
+    db.content.count({ where: { competitor: { projectId } } }),
+    db.analysisRun.findFirst({ where: { projectId }, orderBy: { startedAt: "desc" } }),
+  ]);
 
   const totalContents = competitors.reduce((acc, c) => acc + c._count.contents, 0);
   const atLimit = competitors.length >= limits.maxCompetitorsPerProject;
@@ -42,27 +48,34 @@ export default async function EmpresaPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-semibold">Sua empresa</h1>
-        <p className="text-neutral-300">
-          Tudo em um só lugar: seus concorrentes, coletas, análises, alertas e
-          ideias de conteúdo.
+        <p className="text-neutral-400">
+          Tudo em um só lugar: concorrentes, coletas, análises, alertas e ideias.
         </p>
       </div>
 
+      {/* Painel resumo → atalhos para os dashboards */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+        <StatCard label="Conteúdos" value={contents} href="/empresa/conteudos" />
+        <StatCard label="Tendências" value={trends} href="/empresa/tendencias" />
+        <StatCard label="Ideias" value={ideas} href="/empresa/ideias" />
+        <StatCard label="Roteiros" value={scripts} href="/empresa/roteiros" />
+        <StatCard label="Gaps" value={gaps} href="/empresa/gaps" />
+        <StatCard label="Alertas" value={alerts} href="/empresa/alertas" />
+      </div>
+      {lastRun?.finishedAt && (
+        <p className="-mt-4 text-xs text-neutral-500">
+          Última análise: {lastRun.finishedAt.toLocaleString("pt-BR")} ·{" "}
+          {lastRun.status} · {insights} insights
+        </p>
+      )}
+
       {/* Dados da empresa */}
-      <form
-        action={saveCompanyInfo}
-        className="grid gap-4 rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-5 sm:grid-cols-2"
-      >
+      <form action={saveCompanyInfo} className="card grid gap-4 p-5 sm:grid-cols-2">
         <label className="block">
           <span className="mb-1 block text-sm font-medium text-neutral-200">
             Nome da empresa
           </span>
-          <input
-            name="name"
-            defaultValue={ws.project.name}
-            className="input"
-            placeholder="Ex.: Minha Empresa"
-          />
+          <input name="name" defaultValue={ws.project.name} className="input" />
         </label>
         <label className="block">
           <span className="mb-1 block text-sm font-medium text-neutral-200">Nicho</span>
@@ -101,7 +114,7 @@ export default async function EmpresaPage() {
       </form>
 
       {/* Concorrentes */}
-      <div className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-5">
+      <div className="card p-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-lg font-semibold">
             Concorrentes monitorados{" "}
@@ -132,11 +145,7 @@ export default async function EmpresaPage() {
                   {c.lastCollectedAt ? " · coletado ✓" : " · não coletado"}
                   <form action={removeCompetitor}>
                     <input type="hidden" name="id" value={c.id} />
-                    <button
-                      type="submit"
-                      className="text-red-400 hover:underline"
-                      title="Remover"
-                    >
+                    <button type="submit" className="text-red-400 hover:underline">
                       remover
                     </button>
                   </form>
@@ -146,7 +155,6 @@ export default async function EmpresaPage() {
           </ul>
         )}
 
-        {/* Adicionar concorrentes */}
         <form action={addCompetitors} className="mt-4 space-y-2">
           <label className="block">
             <span className="mb-1 block text-sm font-medium text-neutral-200">
@@ -172,21 +180,6 @@ export default async function EmpresaPage() {
             </span>
           )}
         </form>
-      </div>
-
-      {/* Resultados da análise (inline — o conteúdo unificado da empresa) */}
-      <div>
-        <h2 className="mb-4 text-xl font-semibold">Inteligência gerada</h2>
-        <AnalysisResults
-          ideas={ideas}
-          scripts={scripts}
-          gaps={gaps}
-          trends={trends}
-          insights={insights}
-          report={report}
-          alerts={alerts}
-          lastRun={lastRun}
-        />
       </div>
     </div>
   );

@@ -35,7 +35,12 @@ feature futura do projeto. Tudo escrito em português, para qualquer pessoa ente
       (/api/inngest, crons diário/semanal) e alertas. Falta apenas configurar as contas
       externas e colar as chaves no Vercel: STRIPE_* (chaves + STRIPE_PRICE_PRO/AGENCY) e
       INNGEST_EVENT_KEY/INNGEST_SIGNING_KEY, além de conectar o app no painel da Inngest.)
-  [ ] FASE 4 — Frontend / Dashboards
+  [X] FASE 4 — Frontend / Dashboards  (NO AR — telas sob /empresa/* com abas: Visão geral,
+      Conteúdos, Tendências, Ganchos, Ideias, Roteiros, Gaps, Alertas, Relatório + /configuracoes.
+      Tema escuro verde da marca + animações.)
+
+  🎉 MVP COMPLETO (Fases 0–4). Config externas opcionais restantes: sincronizar o app no
+     painel da Inngest (relatórios automáticos) e criar produtos/preços + webhook no Stripe.
   (Marque com X conforme cada fase for concluída.)
 
 ------------------------------------------------------------------------------------------

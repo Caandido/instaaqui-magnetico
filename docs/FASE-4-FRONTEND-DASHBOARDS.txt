@@ -10,11 +10,28 @@ visual. Ao final, o usuário faz tudo pelo navegador, sem mexer em código.
 ------------------------------------------------------------------------------------------
  O QUE ESTA FASE ENTREGA
 ------------------------------------------------------------------------------------------
-  [ ] Onboarding: criar projeto com os inputs da spec
-  [ ] Tela de concorrentes monitorados
-  [ ] Dashboards: Top Conteúdos, Ganchos, Tendências, Gaps, Ideias, Roteiros, Alertas
-  [ ] Tela de relatórios (diário/semanal) + Plano de 7 dias
-  [ ] Tela de configurações (plano/billing/equipe)
+  [X] Onboarding: dados da empresa + concorrentes (na Visão geral)
+  [X] Tela de concorrentes monitorados (add/remover, coletar, analisar)
+  [X] Dashboards: Top Conteúdos, Ganchos, Tendências, Gaps, Ideias, Roteiros, Alertas
+  [X] Tela de relatórios + Plano de 7 dias
+  [X] Tela de configurações (plano/billing/equipe)
+
+  IMPORTANTE — adaptação ao modelo UNIFICADO:
+  Como o produto foi unificado (uma empresa = um espaço, sem "projetos"), as telas ficam
+  sob /empresa/* com navegação por ABAS (não mais /projetos/[id]/*):
+     /empresa               -> Visão geral (dados + concorrentes + coletar/analisar + resumo)
+     /empresa/conteudos     -> Top Conteúdos (ordenados por desempenho, com categoria/formato/objetivo)
+     /empresa/tendencias    -> Radar de tendências
+     /empresa/ganchos       -> Ganchos e engenharia reversa (insights)
+     /empresa/ideias        -> Ideias (com botão Copiar)
+     /empresa/roteiros      -> Roteiros (com botão Copiar)
+     /empresa/gaps          -> Gaps
+     /empresa/alertas       -> Alertas
+     /empresa/relatorios    -> Relatório + Plano de 7 dias
+     /configuracoes         -> Plano, organização e equipe
+  Componentes reutilizáveis: src/components/ui.tsx (Section, Badge, PotentialBadge, EmptyState,
+  StatCard), empresa-tabs.tsx (abas), copy-button.tsx. Tema escuro + animações (Fase de design).
+  Estados vazios e de carregamento incluídos; responsivo. next build validado.
 
 ------------------------------------------------------------------------------------------
  PRÉ-REQUISITOS DESTA FASE

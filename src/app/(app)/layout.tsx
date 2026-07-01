@@ -33,6 +33,9 @@ export default async function AppLayout({
               <Link href="/planos" className="hover:text-neutral-100">
                 Planos
               </Link>
+              <Link href="/configuracoes" className="hover:text-neutral-100">
+                Configurações
+              </Link>
             </nav>
           </div>
 

@@ -3,6 +3,7 @@
 // concorrentes, coletas, análises e alertas. Por baixo ainda é um Project
 // (para reaproveitar todo o motor das Fases 1–3), mas há só um por empresa.
 
+import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { getCurrentUserWithOrgs, getActiveOrg } from "@/lib/org";
 
@@ -24,4 +25,11 @@ export async function getWorkspace() {
   }
 
   return { project, org, user: data.user };
+}
+
+// Igual ao getWorkspace, mas redireciona para /login se não houver sessão.
+export async function requireWorkspace() {
+  const ws = await getWorkspace();
+  if (!ws) redirect("/login");
+  return ws;
 }
