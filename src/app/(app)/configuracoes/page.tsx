@@ -1,13 +1,11 @@
-import Link from "next/link";
 import { db } from "@/lib/db";
 import { requireWorkspace } from "@/lib/workspace";
-import { getOrgPlan, PLAN_LIMITS } from "@/lib/plan";
+import { getOrgLimits } from "@/lib/plan";
 import { Badge } from "@/components/ui";
 
 export default async function ConfiguracoesPage() {
   const ws = await requireWorkspace();
-  const plan = await getOrgPlan(ws.org.id);
-  const limits = PLAN_LIMITS[plan];
+  const limits = await getOrgLimits(ws.org.id);
 
   const members = await db.membership.findMany({
     where: { organizationId: ws.org.id },
@@ -19,23 +17,20 @@ export default async function ConfiguracoesPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-semibold">Configurações</h1>
-        <p className="text-neutral-400">Plano, organização e equipe.</p>
+        <p className="text-neutral-400">Organização, uso e equipe.</p>
       </div>
 
-      {/* Plano */}
+      {/* Uso */}
       <div className="card p-5">
-        <h2 className="text-lg font-semibold">Plano</h2>
-        <p className="mt-1 flex items-center gap-2 text-sm text-neutral-300">
-          Plano atual: <Badge tone="brand">{plan}</Badge>
-        </p>
+        <h2 className="text-lg font-semibold">Uso</h2>
         <ul className="mt-3 space-y-1 text-sm text-neutral-400">
-          <li>{limits.maxProjects} espaço(s) de empresa</li>
-          <li>{limits.maxCompetitorsPerProject} concorrentes</li>
-          <li>{limits.scheduledAnalysis ? "Análise automática agendada" : "Análise manual"}</li>
+          <li>Até {limits.maxCompetitorsPerProject} concorrentes monitorados</li>
+          <li>
+            {limits.scheduledAnalysis
+              ? "Análise automática agendada"
+              : "Análise manual"}
+          </li>
         </ul>
-        <Link href="/planos" className="btn-primary mt-4 inline-block">
-          Ver planos e fazer upgrade
-        </Link>
       </div>
 
       {/* Organização */}

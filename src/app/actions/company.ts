@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { getWorkspace } from "@/lib/workspace";
 import { getOrgLimits } from "@/lib/plan";
@@ -48,7 +47,7 @@ export async function addCompetitors(formData: FormData) {
   });
   const room = Math.max(0, limits.maxCompetitorsPerProject - existing);
   if (room <= 0) {
-    redirect("/planos?limite=concorrentes");
+    return; // limite atingido — a UI já avisa
   }
 
   for (const h of handles.slice(0, room)) {

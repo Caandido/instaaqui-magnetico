@@ -173,10 +173,8 @@ export default async function EmpresaPage() {
           </button>
           {atLimit && (
             <span className="ml-3 text-sm text-neutral-400">
-              Limite do plano atingido —{" "}
-              <a href="/planos" className="text-brand-400 hover:underline">
-                fazer upgrade
-              </a>
+              Limite de {limits.maxCompetitorsPerProject} concorrentes atingido.
+              Remova algum para adicionar outro.
             </span>
           )}
         </form>

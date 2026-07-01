@@ -10,14 +10,13 @@ export type PlanLimits = {
   scheduledAnalysis: boolean; // agendamento automático liberado?
 };
 
+// Sem planos pagos: um único tier com limites de uso generosos.
+// (Mantido como módulo interno de limites; o cap de concorrentes evita
+//  estourar os créditos gratuitos da Apify.)
 export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
-  FREE: { maxProjects: 1, maxCompetitorsPerProject: 3, scheduledAnalysis: false },
-  PRO: { maxProjects: 5, maxCompetitorsPerProject: 10, scheduledAnalysis: true },
-  AGENCY: {
-    maxProjects: 30,
-    maxCompetitorsPerProject: 30,
-    scheduledAnalysis: true,
-  },
+  FREE: { maxProjects: 1, maxCompetitorsPerProject: 15, scheduledAnalysis: true },
+  PRO: { maxProjects: 1, maxCompetitorsPerProject: 15, scheduledAnalysis: true },
+  AGENCY: { maxProjects: 1, maxCompetitorsPerProject: 15, scheduledAnalysis: true },
 };
 
 // Descobre o plano ativo de uma organização (default FREE).
