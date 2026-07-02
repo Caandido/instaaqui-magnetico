@@ -89,12 +89,20 @@ export async function generateStructured<T>(opts: {
   maxTokens?: number;
 }): Promise<T> {
   const maxTokens = opts.maxTokens ?? MAX_OUTPUT_CAP;
-  const jsonSchema = z.toJSONSchema(opts.schema);
+  const jsonSchema = z.toJSONSchema(opts.schema) as {
+    properties?: Record<string, unknown>;
+  };
+
+  // Chaves obrigatórias no nível raiz — o erro mais comum é o modelo usar outro
+  // nome (ex.: devolver a lista solta em vez de { "items": [...] }).
+  const topKeys = Object.keys(jsonSchema.properties ?? {});
 
   const system =
     `${opts.system}\n\n` +
     "IMPORTANTE: responda em português e SOMENTE com um único objeto JSON " +
-    "válido, sem nenhum texto antes ou depois, seguindo exatamente este JSON Schema:\n" +
+    "válido, sem nenhum texto antes ou depois. O objeto de NÍVEL RAIZ deve " +
+    `conter exatamente esta(s) chave(s): ${topKeys.join(", ")}. ` +
+    "Siga exatamente este JSON Schema:\n" +
     JSON.stringify(jsonSchema);
 
   const messages: ChatMessage[] = [
