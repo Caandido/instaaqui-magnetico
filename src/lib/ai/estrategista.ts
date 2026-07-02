@@ -1,6 +1,6 @@
 // Agente 4 — Estrategista: encontra GAPS (temas pouco explorados, alta demanda
 // e baixa concorrência) a partir dos insights e do conteúdo dos concorrentes.
-import { generateStructured } from "./anthropic";
+import { generateStructured } from "./llm";
 import { GapResult, type InsightResult } from "./schemas";
 import { BASE_IDENTITY, projectContext } from "./prompts";
 import { serializePosts, type PostLite } from "./context";

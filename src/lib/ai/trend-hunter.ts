@@ -1,6 +1,6 @@
 // Agente 6 — Trend Hunter: detecta tendências emergentes (assuntos, formatos,
 // ganchos e narrativas que começaram a crescer) comparando o conteúdo recente.
-import { generateStructured } from "./anthropic";
+import { generateStructured } from "./llm";
 import { TrendResult } from "./schemas";
 import { BASE_IDENTITY, projectContext } from "./prompts";
 import { serializePosts, type PostLite } from "./context";

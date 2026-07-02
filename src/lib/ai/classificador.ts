@@ -1,5 +1,5 @@
 // Agente 2 — Classificador: categoria/formato/objetivo de cada conteúdo.
-import { generateStructured } from "./anthropic";
+import { generateStructured } from "./llm";
 import { ClassificationResult } from "./schemas";
 import { BASE_IDENTITY } from "./prompts";
 import { serializePosts, type PostLite } from "./context";

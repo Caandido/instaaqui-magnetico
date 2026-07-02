@@ -1,6 +1,6 @@
 // Agente 7 — Report Generator: consolida tudo no relatório (resumo executivo,
 // top conteúdos, ganchos vencedores, alertas e plano de 7 dias).
-import { generateStructured } from "./anthropic";
+import { generateStructured } from "./llm";
 import {
   ReportResult,
   type GapResult,

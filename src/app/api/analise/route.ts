@@ -1,7 +1,7 @@
 // Dispara o pipeline de IA (Fase 2) para um projeto e devolve um resumo.
 import { NextResponse } from "next/server";
 import { getAccessibleProject } from "@/lib/projects";
-import { hasAnthropicKey } from "@/lib/ai/anthropic";
+import { hasAIKey } from "@/lib/ai/llm";
 import { runAnalysisForProject } from "@/lib/ai/pipeline";
 
 export const runtime = "nodejs";
@@ -23,9 +23,9 @@ export async function POST(request: Request) {
   if (!project) {
     return NextResponse.json({ error: "Projeto não encontrado." }, { status: 404 });
   }
-  if (!hasAnthropicKey()) {
+  if (!hasAIKey()) {
     return NextResponse.json(
-      { error: "ANTHROPIC_API_KEY não configurado no servidor." },
+      { error: "GROQ_API_KEY não configurado no servidor." },
       { status: 400 }
     );
   }

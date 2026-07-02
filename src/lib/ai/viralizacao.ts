@@ -1,6 +1,6 @@
 // Agente 3 — Analista de Viralização: engenharia reversa dos posts de maior
 // desempenho (Gancho → Desenvolvimento → CTA → Motivo) + padrões gerais.
-import { generateStructured } from "./anthropic";
+import { generateStructured } from "./llm";
 import { InsightResult } from "./schemas";
 import { BASE_IDENTITY, projectContext } from "./prompts";
 import { serializePosts, topPosts, type PostLite } from "./context";

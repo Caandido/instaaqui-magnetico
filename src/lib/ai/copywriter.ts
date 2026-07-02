@@ -1,6 +1,6 @@
 // Agente 5 — Copywriter: gera NO MÍNIMO 20 ideias + roteiros a partir dos
 // insights e gaps. Formatos seguem o CLAUDE.md. Nunca copia; sempre diferencia.
-import { generateStructured } from "./anthropic";
+import { generateStructured } from "./llm";
 import { CopyResult, type GapResult, type InsightResult } from "./schemas";
 import { BASE_IDENTITY, projectContext } from "./prompts";
 
