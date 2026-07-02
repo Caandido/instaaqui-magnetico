@@ -25,7 +25,7 @@ export async function POST(request: Request) {
   }
   if (!hasAIKey()) {
     return NextResponse.json(
-      { error: "OPENROUTER_API_KEY não configurado no servidor." },
+      { error: "GITHUB_MODELS_TOKEN não configurado no servidor." },
       { status: 400 }
     );
   }

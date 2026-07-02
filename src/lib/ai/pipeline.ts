@@ -2,7 +2,11 @@
 // Ordem: (classificar + viralização + trends em paralelo) → gaps → copy → relatório.
 
 import { db } from "@/lib/db";
-import type { PostLite } from "./context";
+import { topPosts, type PostLite } from "./context";
+
+// Máximo de posts enviados à IA por análise. Foca nos de maior engajamento e
+// mantém cada chamada dentro do limite de entrada do modelo gratuito.
+const MAX_POSTS_ANALYZED = 20;
 import { classifyPosts } from "./classificador";
 import { analyzeVirality } from "./viralizacao";
 import { huntTrends } from "./trend-hunter";
@@ -43,11 +47,11 @@ export async function runAnalysisForProject(
   if (!project) throw new Error("Projeto não encontrado.");
 
   // Achata os posts coletados em uma lista compacta + mapa externalId → contentId.
-  const posts: PostLite[] = [];
+  const allPosts: PostLite[] = [];
   const contentIdByExternal = new Map<string, string>();
   for (const c of project.competitors) {
     for (const ct of c.contents) {
-      posts.push({
+      allPosts.push({
         externalId: ct.externalId,
         competitor: c.handle,
         type: ct.type,
@@ -59,13 +63,15 @@ export async function runAnalysisForProject(
       contentIdByExternal.set(ct.externalId, ct.id);
     }
   }
+  // Analisa os de maior engajamento (limite de entrada do modelo gratuito).
+  const posts = topPosts(allPosts, MAX_POSTS_ANALYZED);
 
   const run = await db.analysisRun.create({
-    data: { projectId, status: "RUNNING", contentsSeen: posts.length },
+    data: { projectId, status: "RUNNING", contentsSeen: allPosts.length },
   });
 
   try {
-    if (posts.length === 0) {
+    if (allPosts.length === 0) {
       throw new Error(
         "Nenhum conteúdo coletado. Rode a coleta (Fase 1) antes de analisar."
       );
@@ -202,7 +208,7 @@ export async function runAnalysisForProject(
 
     return {
       runId: run.id,
-      contents: posts.length,
+      contents: allPosts.length,
       classifications: classCount,
       insights: insights.insights.length,
       ideas: copy.ideas.length,
