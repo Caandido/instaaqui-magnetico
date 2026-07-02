@@ -25,7 +25,7 @@ export async function POST(request: Request) {
   }
   if (!hasAIKey()) {
     return NextResponse.json(
-      { error: "GROQ_API_KEY não configurado no servidor." },
+      { error: "GEMINI_API_KEY não configurado no servidor." },
       { status: 400 }
     );
   }

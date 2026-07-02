@@ -1,68 +1,84 @@
 // Cliente de IA (LLM) + utilitário para "pedir JSON validado".
-// Backend atual: Groq (API compatível com OpenAI, plano gratuito sem cartão).
-// Modelo: Llama 3.3 70B. A resposta é sempre validada por um schema Zod, então
-// a IA nunca devolve algo "torto": pedimos JSON, validamos e, se fugir do
-// formato, tentamos de novo com a mensagem de erro como dica.
+// Backend atual: Google Gemini (AI Studio, plano gratuito sem cartão e com
+// limite de tokens/minuto muito alto — adequado ao pipeline de 6 agentes).
+// A resposta é sempre validada por um schema Zod: pedimos JSON, validamos e,
+// se fugir do formato, tentamos de novo com a mensagem de erro como dica.
 
 import { z } from "zod";
 
-// Modelo padrão no Groq. Troque aqui se quiser outro (ex.: "llama-3.1-8b-instant"
-// para respostas mais rápidas e limites de uso maiores).
-export const AI_MODEL = "llama-3.3-70b-versatile";
+// Modelo padrão no Gemini (grátis, rápido, 1M tokens/min no free tier).
+export const AI_MODEL = "gemini-2.0-flash";
 
-const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
+const API_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
+
+// Gemini 2.0 Flash aceita até 8192 tokens de saída.
+const MAX_OUTPUT_CAP = 8192;
 
 export function hasAIKey(): boolean {
-  return Boolean(process.env.GROQ_API_KEY);
+  return Boolean(process.env.GEMINI_API_KEY);
 }
 
-type GroqMessage = { role: "system" | "user" | "assistant"; content: string };
+type Turn = { role: "user" | "model"; text: string };
 
-async function callGroq(
-  messages: GroqMessage[],
+async function callGemini(
+  system: string,
+  turns: Turn[],
   maxTokens: number
 ): Promise<string> {
-  const apiKey = process.env.GROQ_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    throw new Error("GROQ_API_KEY não configurado no servidor.");
+    throw new Error("GEMINI_API_KEY não configurado no servidor.");
   }
 
-  // Até 3 tentativas em caso de rate limit (429) do plano gratuito.
+  const url = `${API_BASE}/${AI_MODEL}:generateContent?key=${apiKey}`;
+  const body = {
+    systemInstruction: { parts: [{ text: system }] },
+    contents: turns.map((t) => ({ role: t.role, parts: [{ text: t.text }] })),
+    generationConfig: {
+      temperature: 0.5,
+      maxOutputTokens: Math.min(maxTokens, MAX_OUTPUT_CAP),
+      responseMimeType: "application/json",
+    },
+  };
+
+  // Até 3 tentativas em caso de rate limit (429).
   for (let attempt = 0; attempt < 3; attempt++) {
-    const res = await fetch(GROQ_URL, {
+    const res = await fetch(url, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: AI_MODEL,
-        messages,
-        temperature: 0.5,
-        max_tokens: maxTokens,
-        response_format: { type: "json_object" },
-      }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
     });
 
     if (res.status === 429 && attempt < 2) {
-      const retryAfter = Number(res.headers.get("retry-after")) || 3;
-      await new Promise((r) => setTimeout(r, Math.min(retryAfter, 8) * 1000));
+      await new Promise((r) => setTimeout(r, (attempt + 1) * 4000));
       continue;
     }
 
     if (!res.ok) {
       const text = await res.text().catch(() => "");
-      throw new Error(`Groq respondeu ${res.status}: ${text.slice(0, 300)}`);
+      throw new Error(`Gemini respondeu ${res.status}: ${text.slice(0, 300)}`);
     }
 
     const data = (await res.json()) as {
-      choices?: { message?: { content?: string } }[];
+      candidates?: {
+        content?: { parts?: { text?: string }[] };
+        finishReason?: string;
+      }[];
+      promptFeedback?: { blockReason?: string };
     };
-    const content = data.choices?.[0]?.message?.content;
-    if (!content) throw new Error("Groq não retornou conteúdo.");
+
+    if (data.promptFeedback?.blockReason) {
+      throw new Error(
+        `Gemini bloqueou o conteúdo: ${data.promptFeedback.blockReason}`
+      );
+    }
+
+    const parts = data.candidates?.[0]?.content?.parts ?? [];
+    const content = parts.map((p) => p.text ?? "").join("");
+    if (!content) throw new Error("Gemini não retornou conteúdo.");
     return content;
   }
-  throw new Error("Groq: limite de requisições excedido (429) após retentativas.");
+  throw new Error("Gemini: limite de requisições excedido (429) após retentativas.");
 }
 
 // Pede à IA um resultado no formato do schema. Lança se a IA fugir do formato.
@@ -81,28 +97,27 @@ export async function generateStructured<T>(opts: {
     "válido, sem nenhum texto antes ou depois, seguindo exatamente este JSON Schema:\n" +
     JSON.stringify(jsonSchema);
 
-  const messages: GroqMessage[] = [
-    { role: "system", content: system },
-    { role: "user", content: opts.user },
-  ];
+  const turns: Turn[] = [{ role: "user", text: opts.user }];
 
   // Duas tentativas: se o JSON não bater com o schema, reenviamos com o erro.
   let lastError = "";
   for (let attempt = 0; attempt < 2; attempt++) {
-    const raw = await callGroq(messages, maxTokens);
+    const raw = await callGemini(system, turns, maxTokens);
     try {
       const parsed = JSON.parse(raw);
       return opts.schema.parse(parsed) as T;
     } catch (e) {
       lastError = String(e);
-      messages.push({ role: "assistant", content: raw });
-      messages.push({
+      turns.push({ role: "model", text: raw });
+      turns.push({
         role: "user",
-        content:
+        text:
           "O JSON acima está inválido ou não segue o schema. Corrija e " +
           `responda de novo APENAS com o JSON válido. Erro: ${lastError.slice(0, 400)}`,
       });
     }
   }
-  throw new Error(`A IA não retornou um JSON válido no formato esperado. ${lastError.slice(0, 200)}`);
+  throw new Error(
+    `A IA não retornou um JSON válido no formato esperado. ${lastError.slice(0, 200)}`
+  );
 }
