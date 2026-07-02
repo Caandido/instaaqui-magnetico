@@ -26,10 +26,33 @@ function extractJson(raw: string): string {
   let s = raw.trim();
   const fence = s.match(/```(?:json)?\s*([\s\S]*?)```/i);
   if (fence) s = fence[1].trim();
-  const first = s.indexOf("{");
-  const last = s.lastIndexOf("}");
+  // Pode vir como objeto {…} ou como array solto […]; pega o trecho externo.
+  const objFirst = s.indexOf("{");
+  const arrFirst = s.indexOf("[");
+  const useArray = arrFirst !== -1 && (objFirst === -1 || arrFirst < objFirst);
+  const open = useArray ? "[" : "{";
+  const close = useArray ? "]" : "}";
+  const first = s.indexOf(open);
+  const last = s.lastIndexOf(close);
   if (first !== -1 && last !== -1 && last > first) return s.slice(first, last + 1);
   return s;
+}
+
+// Reencaixa a resposta na forma esperada quando o schema tem UMA chave-raiz de
+// lista e o modelo devolveu o array solto ou com outro nome. Ex.: [...] ou
+// { "resultados": [...] } → { "trends": [...] }.
+function coerceShape(parsed: unknown, topKeys: string[]): unknown {
+  if (topKeys.length !== 1) return parsed;
+  const key = topKeys[0];
+  if (Array.isArray(parsed)) return { [key]: parsed };
+  if (parsed && typeof parsed === "object") {
+    const obj = parsed as Record<string, unknown>;
+    if (obj[key] === undefined) {
+      const arrKey = Object.keys(obj).find((k) => Array.isArray(obj[k]));
+      if (arrKey) return { [key]: obj[arrKey] };
+    }
+  }
+  return parsed;
 }
 
 async function callModel(
@@ -115,7 +138,7 @@ export async function generateStructured<T>(opts: {
   for (let attempt = 0; attempt < 2; attempt++) {
     const raw = await callModel(messages, maxTokens);
     try {
-      const parsed = JSON.parse(extractJson(raw));
+      const parsed = coerceShape(JSON.parse(extractJson(raw)), topKeys);
       return opts.schema.parse(parsed) as T;
     } catch (e) {
       lastError = String(e);
