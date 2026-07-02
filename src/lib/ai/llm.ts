@@ -1,13 +1,14 @@
 // Cliente de IA (LLM) + utilitário para "pedir JSON validado".
 // Backend atual: GitHub Models (grátis com uma conta GitHub, sem cartão e sem
-// bloqueio de região). Modelo: gpt-4o-mini (ótimo seguindo JSON). O limite é
-// por requisição/minuto (não por tokens/min minúsculo), então o pipeline de 6
-// agentes cabe. A resposta é sempre validada por um schema Zod: pedimos JSON
-// (response_format), validamos e, se fugir do formato, tentamos de novo.
+// bloqueio de região). Modelo: gpt-4o-mini.
+// Usa Structured Outputs (response_format json_schema strict): a API OBRIGA a
+// resposta a bater exatamente com o schema (chaves, tipos e objetos aninhados).
+// Como rede de segurança, ainda validamos com Zod e, se o endpoint recusar o
+// schema strict, caímos para o modo json_object com reparo + retentativa.
 
 import { z } from "zod";
 
-// Modelo padrão no GitHub Models (grátis). gpt-4o-mini segue bem o formato JSON.
+// Modelo padrão no GitHub Models (grátis). gpt-4o-mini suporta structured outputs.
 export const AI_MODEL = "gpt-4o-mini";
 
 const ENDPOINT = "https://models.inference.ai.azure.com/chat/completions";
@@ -21,12 +22,31 @@ export function hasAIKey(): boolean {
 
 type ChatMessage = { role: "system" | "user" | "assistant"; content: string };
 
-// Extrai o objeto JSON caso venha cercado por ```json ... ``` ou com texto ao redor.
+// Converte um JSON Schema (gerado pelo Zod) para o formato strict da OpenAI:
+// todo objeto ganha additionalProperties:false e required com TODAS as chaves.
+function makeStrict(node: unknown): unknown {
+  if (Array.isArray(node)) return node.map(makeStrict);
+  if (node && typeof node === "object") {
+    const src = node as Record<string, unknown>;
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(src)) {
+      if (k === "$schema") continue;
+      out[k] = makeStrict(v);
+    }
+    if (out.type === "object" && out.properties && typeof out.properties === "object") {
+      out.additionalProperties = false;
+      out.required = Object.keys(out.properties as Record<string, unknown>);
+    }
+    return out;
+  }
+  return node;
+}
+
+// Extrai o objeto/array JSON caso venha cercado por ```json ... ``` ou com texto.
 function extractJson(raw: string): string {
   let s = raw.trim();
   const fence = s.match(/```(?:json)?\s*([\s\S]*?)```/i);
   if (fence) s = fence[1].trim();
-  // Pode vir como objeto {…} ou como array solto […]; pega o trecho externo.
   const objFirst = s.indexOf("{");
   const arrFirst = s.indexOf("[");
   const useArray = arrFirst !== -1 && (objFirst === -1 || arrFirst < objFirst);
@@ -38,9 +58,8 @@ function extractJson(raw: string): string {
   return s;
 }
 
-// Reencaixa a resposta na forma esperada quando o schema tem UMA chave-raiz de
-// lista e o modelo devolveu o array solto ou com outro nome. Ex.: [...] ou
-// { "resultados": [...] } → { "trends": [...] }.
+// Reencaixa a resposta quando o schema tem UMA chave-raiz de lista e o modelo
+// devolveu o array solto ou com outro nome. Ex.: [...] → { "trends": [...] }.
 function coerceShape(parsed: unknown, topKeys: string[]): unknown {
   if (topKeys.length !== 1) return parsed;
   const key = topKeys[0];
@@ -57,7 +76,8 @@ function coerceShape(parsed: unknown, topKeys: string[]): unknown {
 
 async function callModel(
   messages: ChatMessage[],
-  maxTokens: number
+  maxTokens: number,
+  responseFormat: unknown
 ): Promise<string> {
   const apiKey = process.env.GITHUB_MODELS_TOKEN;
   if (!apiKey) {
@@ -75,9 +95,9 @@ async function callModel(
       body: JSON.stringify({
         model: AI_MODEL,
         messages,
-        temperature: 0.5,
+        temperature: 0.4,
         max_tokens: Math.min(maxTokens, MAX_OUTPUT_CAP),
-        response_format: { type: "json_object" },
+        response_format: responseFormat,
       }),
     });
 
@@ -115,10 +135,18 @@ export async function generateStructured<T>(opts: {
   const jsonSchema = z.toJSONSchema(opts.schema) as {
     properties?: Record<string, unknown>;
   };
-
-  // Chaves obrigatórias no nível raiz — o erro mais comum é o modelo usar outro
-  // nome (ex.: devolver a lista solta em vez de { "items": [...] }).
   const topKeys = Object.keys(jsonSchema.properties ?? {});
+
+  // Formato strict (garante a estrutura) e o fallback simples (json_object).
+  const strictFormat = {
+    type: "json_schema",
+    json_schema: {
+      name: "resultado",
+      strict: true,
+      schema: makeStrict(jsonSchema),
+    },
+  };
+  const jsonObjectFormat = { type: "json_object" };
 
   const system =
     `${opts.system}\n\n` +
@@ -133,10 +161,25 @@ export async function generateStructured<T>(opts: {
     { role: "user", content: opts.user },
   ];
 
-  // Duas tentativas: se o JSON não bater com o schema, reenviamos com o erro.
+  let useStrict = true;
   let lastError = "";
-  for (let attempt = 0; attempt < 2; attempt++) {
-    const raw = await callModel(messages, maxTokens);
+  for (let attempt = 0; attempt < 3; attempt++) {
+    let raw: string;
+    try {
+      raw = await callModel(
+        messages,
+        maxTokens,
+        useStrict ? strictFormat : jsonObjectFormat
+      );
+    } catch (e) {
+      // Se o endpoint recusar o schema strict (400), cai pro json_object.
+      if (useStrict && String(e).includes("respondeu 400")) {
+        useStrict = false;
+        continue;
+      }
+      throw e;
+    }
+
     try {
       const parsed = coerceShape(JSON.parse(extractJson(raw)), topKeys);
       return opts.schema.parse(parsed) as T;
